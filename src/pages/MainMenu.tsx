@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
-import { listSaves, loadGame } from '../engine/saveSystem';
+import { listSaves, loadGame, loadAutosave, autosaveInfo } from '../engine/saveSystem';
 import type { DifficultyLevel } from '../types/game';
 
 const DIFFICULTIES: { id: DifficultyLevel; label: string; desc: string }[] = [
@@ -13,7 +13,8 @@ const DIFFICULTIES: { id: DifficultyLevel; label: string; desc: string }[] = [
 export function MainMenu() {
   const { difficulty, setDifficulty, phase, loadState } = useGameStore();
   const saves = listSaves();
-  const hasSave = saves.some((s) => s.savedAt);
+  const auto = autosaveInfo();
+  const hasSave = auto !== null || saves.some((s) => s.savedAt);
 
   function handleNewGame() {
     useGameStore.setState({ phase: 'candidate-select' });
@@ -21,6 +22,11 @@ export function MainMenu() {
 
   function handleLoad(slot: number) {
     const saved = loadGame(slot);
+    if (saved) loadState(saved);
+  }
+
+  function handleResume() {
+    const saved = loadAutosave();
     if (saved) loadState(saved);
   }
 
@@ -87,6 +93,13 @@ export function MainMenu() {
           {hasSave && (
             <div className="space-y-2">
               <div className="text-xs text-white/30 uppercase tracking-widest text-center">Continue</div>
+              {auto && (
+                <button onClick={handleResume}
+                  className="w-full py-3 px-4 rounded-xl border border-chaos-gold/30 bg-chaos-gold/10 hover:border-chaos-gold/60 text-left text-white transition-all flex justify-between items-center">
+                  <span className="text-sm font-semibold">⏩ Resume Autosave · {auto.candidateName ?? 'Unknown'}</span>
+                  <span className="text-xs text-white/40">Day {auto.day}</span>
+                </button>
+              )}
               {saves.filter((s) => s.savedAt).map((s) => (
                 <button key={s.slot} onClick={() => handleLoad(s.slot)}
                   className="w-full py-3 px-4 rounded-xl border border-white/10 bg-white/4 hover:border-white/30 text-left text-white transition-all flex justify-between items-center">

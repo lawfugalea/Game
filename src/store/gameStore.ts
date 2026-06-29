@@ -5,10 +5,10 @@ import { DEFAULT_STATS, OPPONENT_DEFAULT_STATS, DIFFICULTY_MODIFIERS } from '../
 import { clamp } from '../utils/random';
 import { recalcPolls } from '../engine/pollingEngine';
 import { projectEV } from '../engine/electoralCollege';
-import { pickEvent, applyChoice, applyOpponentDay } from '../engine/eventEngine';
+import { pickEvent, applyChoice, applyOpponentDay, scaleEffects } from '../engine/eventEngine';
 import { tickEconomy } from '../engine/economySystem';
 import { checkScandalEscalation, SCANDAL_STAT_HIT } from '../engine/scandalSystem';
-import { autosave } from '../engine/saveSystem';
+import { autosave, saveGame, deleteSave } from '../engine/saveSystem';
 import { candidates, opponents } from '../data/candidates';
 
 function defaultState(): GameState {
@@ -30,6 +30,8 @@ function defaultState(): GameState {
     achievements: [],
     pendingEventId: null,
     lastChoiceHeadline: null,
+    unlockedEventIds: [],
+    seenEventIds: [],
   };
 }
 
@@ -42,6 +44,8 @@ interface GameStore extends GameState {
   makeChoice: (choice: Choice, eventId: string) => void;
   returnToDashboard: () => void;
   goToMainMenu: () => void;
+  saveToSlot: (slot: number) => void;
+  deleteSaveSlot: (slot: number) => void;
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -61,7 +65,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set(state);
   },
 
-  loadState: (s) => set(s),
+  loadState: (s) =>
+    set({
+      ...defaultState(),
+      ...s,
+      unlockedEventIds: s.unlockedEventIds ?? [],
+      seenEventIds: s.seenEventIds ?? [],
+    }),
 
   advanceDay: () => {
     const state = get();
@@ -137,6 +147,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const event = pickEvent({ ...state, ...nextState } as GameState);
     if (event) {
       nextState.pendingEventId = event.id;
+      // Mark as seen so it won't repeat, and consume it from the unlocked queue.
+      nextState.seenEventIds = [...(state.seenEventIds ?? []), event.id];
+      nextState.unlockedEventIds = (state.unlockedEventIds ?? []).filter((id) => id !== event.id);
       if (event.isDebate) nextState.phase = 'debate';
       else if (event.isPress) nextState.phase = 'press';
       else nextState.phase = 'event';
@@ -148,18 +161,24 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   makeChoice: (choice, eventId) => {
     const state = get();
-    let stats = applyChoice(state.stats, choice);
+    const diffMod = DIFFICULTY_MODIFIERS[state.difficulty];
+    const stats = applyChoice(state.stats, choice, diffMod.eventPenaltyMult);
 
-    // Queue long-term effects
+    // Queue long-term effects (difficulty-scaled the same way as immediate effects)
     const newEffects = [...state.activeEffects];
     if (choice.longTermEffects && choice.longTermDelay) {
       newEffects.push({
         id: `${eventId}-lt-${state.day}`,
         label: choice.headline,
-        effects: choice.longTermEffects,
+        effects: scaleEffects(choice.longTermEffects, diffMod.eventPenaltyMult),
         appliesOnDay: state.day + choice.longTermDelay,
       });
     }
+
+    // Branching: queue any events this choice unlocks
+    const unlockedEventIds = choice.unlocks?.length
+      ? Array.from(new Set([...(state.unlockedEventIds ?? []), ...choice.unlocks]))
+      : state.unlockedEventIds ?? [];
 
     const polls = recalcPolls(stats, state.opponentStats);
     const electoralVotes = projectEV(stats, state.opponentStats);
@@ -175,6 +194,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       polls,
       electoralVotes,
       activeEffects: newEffects,
+      unlockedEventIds,
       lastChoiceHeadline: logEntry.headline,
       eventLog: [logEntry, ...state.eventLog].slice(0, 50),
       pendingEventId: null,
@@ -184,4 +204,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
   returnToDashboard: () => set({ phase: 'campaign', pendingEventId: null }),
 
   goToMainMenu: () => set(defaultState()),
+
+  saveToSlot: (slot) => {
+    saveGame(get(), slot);
+  },
+
+  deleteSaveSlot: (slot) => {
+    deleteSave(slot);
+  },
 }));

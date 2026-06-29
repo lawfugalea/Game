@@ -30,4 +30,6 @@ export interface GameEvent {
   isDebate?: boolean;
   isPress?: boolean;
   participants?: string[];
+  // M9: only ever appears when unlocked by another choice's `unlocks`, never at random
+  branchOnly?: boolean;
 }

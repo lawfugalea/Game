@@ -4,6 +4,7 @@ import { useGameStore } from '../store/gameStore';
 import { allEvents } from '../data/events';
 import { ChoiceCard } from '../components/ui/ChoiceCard';
 import { TVLowerThird } from '../components/ui/TVLowerThird';
+import { getChoiceLocks } from '../engine/staminaSystem';
 import type { Choice } from '../types/events';
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -21,13 +22,14 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 export function EventScreen() {
-  const { pendingEventId, candidate, makeChoice, returnToDashboard } = useGameStore();
+  const { pendingEventId, candidate, stats, makeChoice, returnToDashboard } = useGameStore();
   const [chosen, setChosen] = useState<Choice | null>(null);
   const event = allEvents.find((e) => e.id === pendingEventId);
 
   if (!event || !candidate) return null;
 
   const color = CATEGORY_COLORS[event.category] ?? CATEGORY_COLORS.default;
+  const locks = getChoiceLocks(stats, event.choices);
 
   function handleChoice(choice: Choice) {
     setChosen(choice);
@@ -74,6 +76,8 @@ export function EventScreen() {
               index={i}
               onSelect={() => handleChoice(choice)}
               disabled={!!chosen}
+              locked={locks[i].locked}
+              lockReason={locks[i].reason}
             />
           ))}
         </div>

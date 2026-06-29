@@ -1,10 +1,12 @@
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { StatBar } from '../components/ui/StatBar';
 import { PollGauge } from '../components/ui/PollGauge';
 import { ElectoralCounter } from '../components/ui/ElectoralCounter';
 import { SwingStateMap } from '../components/ui/SwingStateMap';
 import { NewsTicker } from '../components/ui/NewsTicker';
+import { SaveModal } from '../components/ui/SaveModal';
 import { formatFunds, formatDay } from '../utils/format';
 import { SCANDAL_LABELS } from '../engine/scandalSystem';
 
@@ -13,6 +15,8 @@ export function Dashboard() {
     day, totalDays, candidate, opponent, stats, opponentStats,
     polls, electoralVotes, eventLog, scandalStage, advanceDay,
   } = useGameStore();
+
+  const [showSave, setShowSave] = useState(false);
 
   if (!candidate || !opponent) return null;
 
@@ -28,8 +32,16 @@ export function Dashboard() {
       <div className="px-4 pt-4 pb-2">
         <div className="flex items-center justify-between mb-1">
           <div className="text-xs text-white/30 uppercase tracking-widest">Campaign HQ</div>
-          <div className="text-xs font-bold" style={{ color: urgencyColor }}>
-            Day {day} · {formatDay(day, totalDays)}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowSave(true)}
+              className="text-xs font-bold px-2.5 py-1 rounded-lg border border-white/10 bg-white/5 text-white/60 hover:text-white hover:border-white/30 transition-all"
+            >
+              💾 Save
+            </button>
+            <div className="text-xs font-bold" style={{ color: urgencyColor }}>
+              Day {day} · {formatDay(day, totalDays)}
+            </div>
           </div>
         </div>
 
@@ -127,6 +139,10 @@ export function Dashboard() {
           {daysLeft <= 0 ? 'GO TO ELECTION NIGHT →' : `ADVANCE TO DAY ${day + 1} →`}
         </motion.button>
       </div>
+
+      <AnimatePresence>
+        {showSave && <SaveModal onClose={() => setShowSave(false)} />}
+      </AnimatePresence>
     </div>
   );
 }

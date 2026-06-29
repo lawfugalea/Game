@@ -3,15 +3,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { allEvents } from '../data/events';
 import { ChoiceCard } from '../components/ui/ChoiceCard';
+import { getChoiceLocks } from '../engine/staminaSystem';
 import type { Choice } from '../types/events';
 
 export function DebateScreen() {
-  const { pendingEventId, candidate, opponent, makeChoice, returnToDashboard } = useGameStore();
+  const { pendingEventId, candidate, opponent, stats, makeChoice, returnToDashboard } = useGameStore();
   const [chosen, setChosen] = useState<Choice | null>(null);
   const [audienceMeter, setAudienceMeter] = useState(50);
   const event = allEvents.find((e) => e.id === pendingEventId);
 
   if (!event || !candidate || !opponent) return null;
+
+  const locks = getChoiceLocks(stats, event.choices);
 
   function handleChoice(choice: Choice) {
     setChosen(choice);
@@ -79,7 +82,7 @@ export function DebateScreen() {
         <div className="text-xs text-white/30 uppercase tracking-widest mb-3">Your Response</div>
         <div className="space-y-3">
           {event.choices.map((choice, i) => (
-            <ChoiceCard key={i} choice={choice} index={i} onSelect={() => handleChoice(choice)} disabled={!!chosen} />
+            <ChoiceCard key={i} choice={choice} index={i} onSelect={() => handleChoice(choice)} disabled={!!chosen} locked={locks[i].locked} lockReason={locks[i].reason} />
           ))}
         </div>
       </div>

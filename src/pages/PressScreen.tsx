@@ -3,16 +3,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { allEvents } from '../data/events';
 import { ChoiceCard } from '../components/ui/ChoiceCard';
+import { getChoiceLocks } from '../engine/staminaSystem';
 import type { Choice } from '../types/events';
 
 export function PressScreen() {
-  const { pendingEventId, candidate, makeChoice, returnToDashboard } = useGameStore();
+  const { pendingEventId, candidate, stats, makeChoice, returnToDashboard } = useGameStore();
   const [chosen, setChosen] = useState<Choice | null>(null);
   const event = allEvents.find((e) => e.id === pendingEventId);
 
   if (!event || !candidate) return null;
 
   const journalist = event.participants?.[0] ?? 'Press Reporter';
+  const locks = getChoiceLocks(stats, event.choices);
 
   function handleChoice(choice: Choice) {
     setChosen(choice);
@@ -58,7 +60,7 @@ export function PressScreen() {
         <div className="text-xs text-white/30 uppercase tracking-widest mb-3">Your Answer</div>
         <div className="space-y-3">
           {event.choices.map((choice, i) => (
-            <ChoiceCard key={i} choice={choice} index={i} onSelect={() => handleChoice(choice)} disabled={!!chosen} />
+            <ChoiceCard key={i} choice={choice} index={i} onSelect={() => handleChoice(choice)} disabled={!!chosen} locked={locks[i].locked} lockReason={locks[i].reason} />
           ))}
         </div>
       </div>

@@ -3,28 +3,27 @@ import { useGameStore } from '../store/gameStore';
 import { StatBar } from '../components/ui/StatBar';
 import { formatFunds } from '../utils/format';
 import { EV_TO_WIN } from '../utils/constants';
+import { determineEnding } from '../engine/endings';
+
+const TONE_COLOR: Record<string, string> = {
+  gold: 'text-chaos-gold',
+  red: 'text-chaos-red',
+  neutral: 'text-white',
+};
 
 export function GameOver() {
   const { candidate, opponent, stats, electoralVotes, day, goToMainMenu } = useGameStore();
   if (!candidate || !opponent) return null;
 
   const won = electoralVotes.player >= EV_TO_WIN;
-
-  const ending = (() => {
-    if (!won && stats.scandalRisk > 70) return { label: 'Scandal Destroyed Your Campaign', desc: 'The headlines never stopped. Your campaign became a case study in what not to do.' };
-    if (!won && stats.funds < 500000) return { label: 'Outspent and Outgunned', desc: 'Without the funds to compete, your message never broke through.' };
-    if (!won) return { label: 'A Close Race', desc: 'You fought hard but the numbers didn\'t fall your way. History will remember the effort.' };
-    if (won && electoralVotes.player > 350) return { label: 'Landslide Victory', desc: 'A historic mandate. The nation didn\'t just choose you — it chose your vision.' };
-    if (won && stats.trust > 70) return { label: 'A President the People Trust', desc: 'You won, and you did it with integrity intact. That matters.' };
-    return { label: 'President-Elect', desc: 'A hard-fought victory. Now the real work begins.' };
-  })();
+  const ending = determineEnding(won, electoralVotes.player, stats);
 
   return (
     <div className="min-h-screen flex flex-col px-4 py-8 max-w-lg mx-auto">
       <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}>
         <div className="text-center mb-8">
-          <div className="text-5xl mb-4">{won ? '🏛️' : '📰'}</div>
-          <h2 className="text-2xl font-black text-white mb-2">{ending.label}</h2>
+          <div className="text-5xl mb-4">{ending.emoji}</div>
+          <h2 className={`text-2xl font-black mb-2 ${TONE_COLOR[ending.tone]}`}>{ending.label}</h2>
           <p className="text-white/50 text-sm leading-relaxed">{ending.desc}</p>
         </div>
 

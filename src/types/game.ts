@@ -77,4 +77,7 @@ export interface GameState {
   achievements: string[];
   pendingEventId: string | null;
   lastChoiceHeadline: string | null;
+  // M9: events unlocked by previous choices (branching), and events already shown
+  unlockedEventIds: string[];
+  seenEventIds: string[];
 }
