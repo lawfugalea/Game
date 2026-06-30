@@ -1,20 +1,31 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
-import { listSaves, loadGame, loadAutosave, autosaveInfo } from '../engine/saveSystem';
+import { listSaves, loadGame, loadAutosave, autosaveInfo, clearAllSaves } from '../engine/saveSystem';
+import { MainMenuHeroArt } from '../components/art';
 import type { DifficultyLevel } from '../types/game';
 
 const DIFFICULTIES: { id: DifficultyLevel; label: string; desc: string }[] = [
-  { id: 'easy', label: 'Easy', desc: 'Forgiving — great for first-timers' },
-  { id: 'normal', label: 'Normal', desc: 'Balanced challenge' },
-  { id: 'hard', label: 'Hard', desc: 'Opponent plays smarter' },
-  { id: 'brutal', label: 'Brutal', desc: 'One mistake can end your campaign' },
+  { id: 'easy', label: 'Easy', desc: 'Forgiving first campaign' },
+  { id: 'normal', label: 'Normal', desc: 'Balanced island fight' },
+  { id: 'hard', label: 'Hard', desc: 'Smarter opposition machine' },
+  { id: 'brutal', label: 'Brutal', desc: 'Every gaffe becomes headline news' },
 ];
 
 export function MainMenu() {
   const { difficulty, setDifficulty, phase, loadState } = useGameStore();
+  const [confirmWipe, setConfirmWipe] = useState(false);
+  const [refresh, setRefresh] = useState(0);
+  void refresh;
   const saves = listSaves();
   const auto = autosaveInfo();
   const hasSave = auto !== null || saves.some((s) => s.savedAt);
+
+  function handleWipe() {
+    clearAllSaves();
+    setConfirmWipe(false);
+    setRefresh((n) => n + 1);
+  }
 
   function handleNewGame() {
     useGameStore.setState({ phase: 'candidate-select' });
@@ -33,86 +44,111 @@ export function MainMenu() {
   void phase;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 relative overflow-hidden"
-      style={{ background: 'linear-gradient(135deg, #080810 0%, #0d0d1f 50%, #080810 100%)' }}>
+    <div className="screen flex min-h-screen flex-col px-5 pb-8">
+      <div className="top-stripe -mx-5" />
 
-      {/* Background stars */}
-      <div className="absolute inset-0 pointer-events-none">
-        {Array.from({ length: 40 }).map((_, i) => (
-          <div key={i} className="absolute rounded-full bg-white/20"
-            style={{ width: 1 + Math.random() * 2, height: 1 + Math.random() * 2, left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`, opacity: 0.2 + Math.random() * 0.5 }} />
-        ))}
-      </div>
-
-      {/* US flag stripes accent */}
-      <div className="absolute top-0 left-0 right-0 h-1 flex">
-        {Array.from({ length: 13 }).map((_, i) => (
-          <div key={i} className="flex-1" style={{ background: i % 2 === 0 ? '#E0212F' : '#fff' }} />
-        ))}
-      </div>
-
-      <motion.div initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
-        className="w-full max-w-md">
-
-        {/* Logo */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-1 mb-3">
-            <div className="w-6 h-6 rounded bg-chaos-red" />
-            <div className="w-6 h-6 rounded bg-chaos-blue" />
-            <div className="w-6 h-6 rounded" style={{ background: '#F5C518' }} />
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55 }}
+        className="flex flex-1 flex-col justify-center py-8"
+      >
+        <div className="mb-7">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="section-label">Malta Votes · 5 Week Sprint</div>
+            <div className="rounded-sm border border-chaos-gold/35 bg-chaos-gold/12 px-2 py-1 text-[0.62rem] font-black uppercase text-chaos-gold">LIVE</div>
           </div>
-          <h1 className="text-5xl font-black text-white tracking-tight leading-none">
-            CAMPAIGN<br />
-            <span style={{ WebkitTextStroke: '2px #E0212F', color: 'transparent' }}>CHAOS</span>
-          </h1>
-          <p className="text-white/30 text-sm mt-3 tracking-widest uppercase">The Presidential Simulation</p>
+
+          <div className="relative overflow-hidden border-y border-chaos-gold/35 py-5">
+            <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,rgba(247,239,226,0.05)_0_1px,transparent_1px_5px)]" />
+            <div className="relative mb-4">
+              <MainMenuHeroArt />
+            </div>
+            <h1 className="display-title relative text-[3.85rem] leading-[0.82] text-chaos-ink">
+              Campaign
+              <span className="block text-transparent" style={{ WebkitTextStroke: '1.5px var(--gold)' }}>Chaos</span>
+            </h1>
+            <div className="relative mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-[0.68rem] font-black uppercase text-white/50">
+              <span className="h-px bg-chaos-red/60" />
+              <span>General Election Simulator</span>
+              <span className="h-px bg-chaos-blue/60" />
+            </div>
+          </div>
         </div>
 
-        {/* Difficulty */}
-        <div className="mb-6">
-          <div className="text-xs text-white/40 uppercase tracking-widest mb-2">Difficulty</div>
+        <div className="broadcast-card mb-5 p-4">
+          <div className="mb-3 flex items-end justify-between">
+            <div>
+              <div className="section-label">Difficulty</div>
+              <div className="text-sm font-bold text-white/56">Set the newsroom pressure.</div>
+            </div>
+          </div>
           <div className="grid grid-cols-2 gap-2">
             {DIFFICULTIES.map((d) => (
-              <button key={d.id} onClick={() => setDifficulty(d.id)}
-                className={`p-3 rounded-lg border text-left transition-all ${difficulty === d.id ? 'border-chaos-red bg-chaos-red/15 text-white' : 'border-white/10 bg-white/3 text-white/50 hover:border-white/30 hover:text-white/80'}`}>
-                <div className="font-bold text-sm">{d.label}</div>
-                <div className="text-xs opacity-60 mt-0.5">{d.desc}</div>
+              <button
+                key={d.id}
+                onClick={() => setDifficulty(d.id)}
+                className={`rounded-sm border p-3 text-left transition-all ${
+                  difficulty === d.id
+                    ? 'border-chaos-gold/65 bg-chaos-gold/14 text-chaos-ink'
+                    : 'border-white/10 bg-black/12 text-white/58 hover:border-white/24 hover:text-white'
+                }`}
+              >
+                <div className="display-title text-sm">{d.label}</div>
+                <div className="mt-1 text-xs leading-snug opacity-70">{d.desc}</div>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Buttons */}
         <div className="space-y-3">
-          <button onClick={handleNewGame}
-            className="w-full py-4 rounded-xl font-black text-lg tracking-wide text-white transition-all active:scale-98"
-            style={{ background: 'linear-gradient(135deg, #E0212F, #c01828)' }}>
-            NEW CAMPAIGN
-          </button>
+          <motion.button whileTap={{ scale: 0.98 }} onClick={handleNewGame} className="btn-primary w-full py-4 text-lg font-black">
+            New Campaign
+          </motion.button>
 
           {hasSave && (
             <div className="space-y-2">
-              <div className="text-xs text-white/30 uppercase tracking-widest text-center">Continue</div>
+              <div className="section-label text-center">Continue</div>
               {auto && (
-                <button onClick={handleResume}
-                  className="w-full py-3 px-4 rounded-xl border border-chaos-gold/30 bg-chaos-gold/10 hover:border-chaos-gold/60 text-left text-white transition-all flex justify-between items-center">
-                  <span className="text-sm font-semibold">⏩ Resume Autosave · {auto.candidateName ?? 'Unknown'}</span>
-                  <span className="text-xs text-white/40">Day {auto.day}</span>
+                <button onClick={handleResume} className="paper-card flex w-full items-center justify-between p-3 text-left text-chaos-ink">
+                  <span className="text-sm font-black">Resume Autosave · {auto.candidateName ?? 'Unknown'}</span>
+                  <span className="text-xs font-bold text-chaos-gold">Day {auto.day}</span>
                 </button>
               )}
               {saves.filter((s) => s.savedAt).map((s) => (
-                <button key={s.slot} onClick={() => handleLoad(s.slot)}
-                  className="w-full py-3 px-4 rounded-xl border border-white/10 bg-white/4 hover:border-white/30 text-left text-white transition-all flex justify-between items-center">
-                  <span className="text-sm font-semibold">{s.candidateName ?? 'Unknown'}</span>
-                  <span className="text-xs text-white/40">Day {s.day} · {new Date(s.savedAt!).toLocaleDateString()}</span>
+                <button key={s.slot} onClick={() => handleLoad(s.slot)} className="paper-card flex w-full items-center justify-between gap-3 p-3 text-left">
+                  <span className="truncate text-sm font-black text-chaos-ink">{s.candidateName ?? 'Unknown'}</span>
+                  <span className="shrink-0 text-xs text-white/42">Day {s.day}</span>
                 </button>
               ))}
             </div>
           )}
+
+          {hasSave && (
+            <div className="pt-1 text-center">
+              {!confirmWipe ? (
+                <button onClick={() => setConfirmWipe(true)} className="text-xs font-bold uppercase text-white/35 transition-colors hover:text-chaos-red">
+                  Delete saved data
+                </button>
+              ) : (
+                <div className="paper-card p-3 text-left">
+                  <div className="serif-note mb-2 text-xs text-white/72">Delete all saves and the autosave? This cannot be undone.</div>
+                  <div className="flex gap-2">
+                    <button onClick={handleWipe} className="flex-1 rounded-sm border border-chaos-red/50 bg-chaos-red/15 px-3 py-2 text-xs font-black uppercase text-chaos-red">
+                      Delete everything
+                    </button>
+                    <button onClick={() => setConfirmWipe(false)} className="btn-ghost flex-1 px-3 py-2 text-xs font-black uppercase">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        <p className="text-center text-white/15 text-xs mt-8">
-          All characters and events are entirely fictional.
+        <p className="serif-note mt-7 text-center text-xs italic text-white/28">
+          All characters and events are fictional. The headlines are the problem.
         </p>
       </motion.div>
     </div>

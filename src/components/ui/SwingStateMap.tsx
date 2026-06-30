@@ -1,5 +1,6 @@
 import type { Stats } from '../../types/game';
-import { swingStates } from '../../data/states';
+import { swingDistricts } from '../../data/states';
+import { districtPlayerShare } from '../../engine/electoralCollege';
 
 interface SwingStateMapProps {
   playerStats: Stats;
@@ -7,42 +8,43 @@ interface SwingStateMapProps {
 }
 
 export function SwingStateMap({ playerStats, opponentStats }: SwingStateMapProps) {
-  const advantage = playerStats.popularity - opponentStats.popularity;
-
   return (
-    <div className="bg-white/5 border border-white/8 rounded-xl p-4">
-      <div className="text-xs text-white/40 uppercase tracking-widest mb-3">Swing States</div>
-      <div className="flex flex-wrap gap-2">
-        {swingStates.map((state) => {
-          const stateAdj = state.baseLean - advantage * 0.5;
-          const isLeaning = stateAdj < -3;
-          const isOpponent = stateAdj > 3;
+    <div className="broadcast-card p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="section-label">Battleground Districts</div>
+        <div className="text-[0.65rem] font-black uppercase text-chaos-gold">STV watch</div>
+      </div>
+      <div className="grid grid-cols-4 gap-2">
+        {swingDistricts.map((d) => {
+          const share = districtPlayerShare(d, playerStats, opponentStats);
+          const isLeaning = share > 0.53;
+          const isOpponent = share < 0.47;
           const isTossup = !isLeaning && !isOpponent;
           return (
             <div
-              key={state.code}
-              className="rounded px-2 py-1 text-xs font-bold text-white"
+              key={d.code}
+              className="relative overflow-hidden rounded-sm border px-2 py-2 text-center text-xs font-black text-white"
               style={{
                 background: isLeaning
-                  ? 'rgba(224,33,47,0.3)'
+                  ? 'rgba(201,20,36,0.34)'
                   : isOpponent
-                  ? 'rgba(30,111,200,0.3)'
-                  : 'rgba(245,197,24,0.2)',
-                border: `1px solid ${isLeaning ? '#E0212F55' : isOpponent ? '#1E6FC855' : '#F5C51855'}`,
+                  ? 'rgba(19,87,159,0.34)'
+                  : 'rgba(216,173,61,0.2)',
+                borderColor: isLeaning ? '#c9142470' : isOpponent ? '#13579f70' : '#d8ad3d70',
               }}
-              title={`${state.name} (${state.electoralVotes} EV)`}
+              title={`${d.name} (${d.seats} seats)`}
             >
-              {state.code}
-              <span className="text-white/40 ml-1">{state.electoralVotes}</span>
-              {isTossup && <span className="ml-1 text-chaos-gold">~</span>}
+              <div className="display-title text-sm leading-none">{d.code}</div>
+              <div className="mt-1 text-[0.62rem] text-white/58">{Math.round(share * 100)}%</div>
+              {isTossup && <div className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-chaos-gold" />}
             </div>
           );
         })}
       </div>
-      <div className="flex gap-4 mt-3 text-xs text-white/30">
-        <span><span className="text-chaos-red">■</span> Leaning You</span>
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[0.65rem] font-bold uppercase text-white/34">
+        <span><span className="text-chaos-red">■</span> You</span>
         <span><span className="text-chaos-gold">■</span> Tossup</span>
-        <span><span className="text-chaos-blue">■</span> Leaning Opponent</span>
+        <span><span className="text-chaos-blue">■</span> Rival</span>
       </div>
     </div>
   );

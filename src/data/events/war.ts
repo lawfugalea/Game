@@ -1,30 +1,41 @@
 import type { GameEvent } from '../../types/events';
 
+// Neutrality, EU and foreign-affairs events (Malta is constitutionally neutral).
 export const warEvents: GameEvent[] = [
   {
-    id: 'war-crisis',
-    category: 'war',
-    title: 'Military Crisis Erupts',
-    description: 'A US ally in the Pacific has been attacked. The President hasn\'t spoken yet. Your campaign is getting calls from every network. The world wants to know where you stand.',
+    id: 'foreign-eu-defence',
+    category: 'foreign',
+    title: 'Pressure to Join an EU Defence Fund',
+    description: 'With war on Europe\'s flanks, Brussels wants every member state to chip into a common defence fund. Malta\'s constitution enshrines neutrality. The phones from your capitals are ringing.',
     choices: [
-      { label: 'Issue a strong statement of solidarity', effects: { foreignPolicy: 8, rural: 4, youthVote: -5, popularity: 3 }, headline: '"{name}" vows to stand with allies: "America does not abandon friends"' },
-      { label: 'Call for restraint and diplomacy', effects: { youthVote: 8, foreignPolicy: -5, rural: -4, trust: 3 }, headline: '"{name}" urges restraint in Pacific crisis: "War is not the answer"' },
-      { label: 'Stay silent until the facts are clearer', effects: { trust: 2, momentum: -4, mediaApproval: -5 }, headline: '"{name}" stays quiet on Pacific crisis — called "absent" by critics' },
-      { label: 'Criticise the current administration\'s foreign policy', effects: { momentum: 5, foreignPolicy: -2, popularity: 4, mediaApproval: 3 }, headline: '"{name}" blasts administration\'s "failed" foreign policy amid crisis' },
+      { label: 'Contribute only to non-lethal and humanitarian funds', effects: { foreignPolicy: 8, trust: 6, independents: 5, stamina: -4 }, headline: '"{name}" backs humanitarian-only EU role: "Neutral, never indifferent"' },
+      { label: 'Refuse outright — neutrality is non-negotiable', effects: { rural: 8, partySupport: 6, foreignPolicy: -8, youthVote: -3 }, headline: '"{name}" rejects EU defence fund: "Not a single euro for weapons"' },
+      { label: 'Quietly contribute to keep allies happy', effects: { foreignPolicy: 10, economyConfidence: 3, trust: -6, rural: -6 }, headline: '"{name}" signs up to EU fund — neutrality hawks furious' },
     ],
     weight: 8,
   },
   {
-    id: 'war-vet-scandal',
-    category: 'war',
-    title: 'Veterans\' Benefits Controversy',
-    description: 'A leaked budget document shows your proposed cuts would reduce veterans\' healthcare funding by 12%. VFW chapters are calling for your resignation.',
+    id: 'foreign-libya-energy',
+    category: 'energy',
+    title: 'A Gas Deal With a Difficult Neighbour',
+    description: 'A North African government offers a cheap long-term gas supply — a lifeline for energy bills, but it comes with murky middlemen and uncomfortable strings.',
     choices: [
-      { label: 'Deny and clarify — it was misrepresented', effects: { trust: -4, scandalRisk: 6, mediaApproval: -3 }, headline: '"{name}" disputes leaked veterans budget figures' },
-      { label: 'Reverse the policy immediately', effects: { trust: 2, funds: -1000000, popularity: 3, partySupport: -5 }, headline: '"{name}" reverses veterans cut policy after public outrage' },
-      { label: 'Meet with VFW leaders publicly', effects: { trust: 5, popularity: 4, stamina: -5, scandalRisk: -4 }, headline: '"{name}" sits down with VFW: "I hear you"' },
-      { label: 'Use it to announce a new Veterans First plan', effects: { popularity: 6, funds: -1500000, rural: 5, workingClass: 4 }, headline: '"{name}" turns controversy into Veterans First policy announcement' },
+      { label: 'Sign the deal — cheap energy now', effects: { economyConfidence: 8, workingClass: 6, popularity: 5, scandalRisk: 10, foreignPolicy: -4 }, headline: '"{name}" signs cut-price gas deal to shield families from bills' },
+      { label: 'Walk away over the middlemen', effects: { trust: 10, foreignPolicy: 6, mediaApproval: 5, economyConfidence: -4 }, headline: '"{name}" kills gas deal: "I will not sign what I cannot explain"' },
+      { label: 'Renegotiate it transparently and slowly', effects: { trust: 5, foreignPolicy: 4, momentum: -3, stamina: -6 }, headline: '"{name}" reopens gas talks, demands an open tender' },
     ],
-    weight: 9,
+    weight: 8,
+  },
+  {
+    id: 'foreign-frontex',
+    category: 'foreign',
+    title: 'Frontex Wants a Bigger Base in Malta',
+    description: 'The EU border agency proposes expanding operations from Malta. It means jobs and EU goodwill — and it means Malta\'s name on a controversial pushback debate.',
+    choices: [
+      { label: 'Welcome it with human-rights guarantees attached', effects: { foreignPolicy: 8, economyConfidence: 4, trust: 4, youthVote: -3 }, headline: '"{name}" backs expanded Frontex role with rights safeguards' },
+      { label: 'Decline — too toxic for Malta\'s reputation', effects: { youthVote: 6, urban: 5, foreignPolicy: -5, economyConfidence: -3 }, headline: '"{name}" rejects bigger Frontex base on the island' },
+      { label: 'Use it as leverage for relocation deals', effects: { foreignPolicy: 10, independents: 6, momentum: 4, stamina: -5 }, headline: '"{name}" trades Frontex base for binding EU relocation pledges' },
+    ],
+    weight: 7,
   },
 ];

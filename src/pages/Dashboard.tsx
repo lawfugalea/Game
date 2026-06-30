@@ -7,6 +7,7 @@ import { ElectoralCounter } from '../components/ui/ElectoralCounter';
 import { SwingStateMap } from '../components/ui/SwingStateMap';
 import { NewsTicker } from '../components/ui/NewsTicker';
 import { SaveModal } from '../components/ui/SaveModal';
+import { CandidatePortrait, ParliamentSeatsMotif } from '../components/art';
 import { formatFunds, formatDay } from '../utils/format';
 import { SCANDAL_LABELS } from '../engine/scandalSystem';
 
@@ -22,105 +23,99 @@ export function Dashboard() {
 
   const headlines = eventLog.map((e) => e.headline);
   const daysLeft = totalDays - day;
-  const urgencyColor = daysLeft <= 14 ? '#E0212F' : daysLeft <= 30 ? '#F5C518' : '#22c55e';
+  const urgencyColor = daysLeft <= 14 ? '#c91424' : daysLeft <= 30 ? '#d8ad3d' : '#2f9f6b';
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#080810' }}>
+    <div className="screen flex min-h-screen flex-col">
       <NewsTicker headlines={headlines} />
 
-      {/* Header */}
-      <div className="px-4 pt-4 pb-2">
+      <div className="px-4 pb-2 pt-4">
         <div className="flex items-center justify-between mb-1">
-          <div className="text-xs text-white/30 uppercase tracking-widest">Campaign HQ</div>
+          <div className="section-label">Campaign HQ</div>
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowSave(true)}
-              className="text-xs font-bold px-2.5 py-1 rounded-lg border border-white/10 bg-white/5 text-white/60 hover:text-white hover:border-white/30 transition-all"
+              className="btn-ghost px-2.5 py-1 text-xs font-black uppercase transition-all hover:text-white"
             >
-              💾 Save
+              Save
             </button>
-            <div className="text-xs font-bold" style={{ color: urgencyColor }}>
-              Day {day} · {formatDay(day, totalDays)}
+            <div className="rounded-sm border px-2 py-1 text-xs font-black uppercase" style={{ color: urgencyColor, borderColor: `${urgencyColor}80`, background: `${urgencyColor}18` }}>
+              Day {day}
             </div>
           </div>
         </div>
 
-        {/* Candidate vs Opponent bar */}
-        <div className="flex items-center gap-3 py-3 border-b border-white/8">
-          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${candidate.avatarBg} flex items-center justify-center`}>
-            <span className="text-white font-black text-sm">{candidate.initials}</span>
-          </div>
+        <div className="broadcast-card mt-3 flex items-center gap-3 p-3">
+          <CandidatePortrait candidate={candidate} className="h-12 w-12 shrink-0" label={`${candidate.name} portrait`} />
           <div className="flex-1">
-            <div className="text-white font-bold text-sm">{candidate.name}</div>
-            <div className="text-white/30 text-xs">{candidate.party} Party</div>
+            <div className="text-sm font-black text-chaos-ink">{candidate.name}</div>
+            <div className="text-xs font-bold uppercase text-chaos-red">{candidate.party} Party</div>
           </div>
-          <div className="text-white/30 text-sm font-black">VS</div>
+          <div className="rounded-sm border border-white/12 bg-black/20 px-2 py-1 text-xs font-black text-white/38">VS</div>
           <div className="flex-1 text-right">
-            <div className="text-white font-bold text-sm">{opponent.name}</div>
-            <div className="text-white/30 text-xs">{opponent.party} Party</div>
+            <div className="text-sm font-black text-chaos-ink">{opponent.name}</div>
+            <div className="text-xs font-bold uppercase text-chaos-blue">{opponent.party} Party</div>
           </div>
-          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${opponent.avatarBg} flex items-center justify-center`}>
-            <span className="text-white font-black text-sm">{opponent.initials}</span>
-          </div>
+          <CandidatePortrait candidate={opponent} className="h-12 w-12 shrink-0" label={`${opponent.name} portrait`} />
         </div>
+        <div className="mt-2 text-center text-xs font-bold uppercase text-white/34">{formatDay(day, totalDays)}</div>
       </div>
 
-      {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-3 space-y-4">
-        <PollGauge polls={polls} playerName={candidate.name.split(' ')[1]} opponentName={opponent.name.split(' ')[1]} />
-        <ElectoralCounter ev={electoralVotes} playerName={candidate.name.split(' ')[1]} opponentName={opponent.name.split(' ')[1]} />
+        <PollGauge polls={polls} playerName={candidate.name.split(' ')[1] ?? candidate.name} opponentName={opponent.name.split(' ')[1]} />
+        <ElectoralCounter ev={electoralVotes} playerName={candidate.name.split(' ')[1] ?? candidate.name} opponentName={opponent.name.split(' ')[1]} />
+        <div className="paper-card px-4 py-3">
+          <div className="section-label mb-1">Parliament Projection</div>
+          <ParliamentSeatsMotif player={electoralVotes.player} opponent={electoralVotes.opponent} />
+        </div>
         <SwingStateMap playerStats={stats} opponentStats={opponentStats} />
 
-        {/* Key stats */}
-        <div className="bg-white/5 border border-white/8 rounded-xl p-4">
-          <div className="text-xs text-white/40 uppercase tracking-widest mb-3">Campaign Status</div>
+        <div className="broadcast-card p-4">
+          <div className="section-label mb-3">Campaign Status</div>
           <div className="grid grid-cols-2 gap-x-4">
             <StatBar label="Popularity" value={stats.popularity} />
-            <StatBar label="Trust" value={stats.trust} color="#1E6FC8" />
-            <StatBar label="Momentum" value={stats.momentum} color="#F5C518" />
-            <StatBar label="Media" value={stats.mediaApproval} color="#a855f7" />
-            <StatBar label="Party Support" value={stats.partySupport} color="#E0212F" />
-            <StatBar label="Stamina" value={stats.stamina} color="#22c55e" />
+            <StatBar label="Trust" value={stats.trust} color="#13579f" />
+            <StatBar label="Momentum" value={stats.momentum} color="#d8ad3d" />
+            <StatBar label="Media" value={stats.mediaApproval} color="#7c5fb8" />
+            <StatBar label="EU Standing" value={stats.foreignPolicy} color="#13579f" />
+            <StatBar label="Stamina" value={stats.stamina} color="#2f9f6b" />
           </div>
         </div>
 
-        {/* Demographics */}
-        <div className="bg-white/5 border border-white/8 rounded-xl p-4">
-          <div className="text-xs text-white/40 uppercase tracking-widest mb-3">Demographics</div>
+        <div className="broadcast-card p-4">
+          <div className="section-label mb-3">Demographics</div>
           <div className="grid grid-cols-2 gap-x-4">
-            <StatBar label="Youth Vote" value={stats.youthVote} compact />
-            <StatBar label="Working Class" value={stats.workingClass} compact color="#F5C518" />
-            <StatBar label="Urban" value={stats.urban} compact color="#1E6FC8" />
-            <StatBar label="Rural" value={stats.rural} compact color="#a855f7" />
-            <StatBar label="Independents" value={stats.independents} compact color="#22c55e" />
+            <StatBar label="Youth" value={stats.youthVote} compact />
+            <StatBar label="Working Class" value={stats.workingClass} compact color="#d8ad3d" />
+            <StatBar label="Harbour / Urban" value={stats.urban} compact color="#13579f" />
+            <StatBar label="Gozo & Villages" value={stats.rural} compact color="#7c5fb8" />
+            <StatBar label="Switchers" value={stats.independents} compact color="#2f9f6b" />
           </div>
         </div>
 
-        {/* Resources */}
-        <div className="bg-white/5 border border-white/8 rounded-xl p-4">
-          <div className="text-xs text-white/40 uppercase tracking-widest mb-3">Resources</div>
+        <div className="broadcast-card p-4">
+          <div className="section-label mb-3">Resources</div>
           <div className="flex justify-between items-center mb-2">
-            <span className="text-xs text-white/50">Campaign Funds</span>
+            <span className="text-xs font-bold uppercase text-white/50">Campaign Funds</span>
             <span className="text-sm font-bold text-chaos-gold">{formatFunds(stats.funds)}</span>
           </div>
           <div className="flex justify-between items-center mb-3">
-            <span className="text-xs text-white/50">Scandal Status</span>
-            <span className={`text-xs font-bold px-2 py-1 rounded ${scandalStage === 0 ? 'bg-green-900/50 text-green-400' : scandalStage <= 2 ? 'bg-yellow-900/50 text-yellow-400' : 'bg-red-900/50 text-red-400'}`}>
+            <span className="text-xs font-bold uppercase text-white/50">Scandal Status</span>
+            <span className={`rounded-sm border px-2 py-1 text-xs font-black uppercase ${scandalStage === 0 ? 'border-chaos-green/40 bg-chaos-green/12 text-chaos-green' : scandalStage <= 2 ? 'border-chaos-gold/40 bg-chaos-gold/12 text-chaos-gold' : 'border-chaos-red/50 bg-chaos-red/14 text-chaos-red'}`}>
               {SCANDAL_LABELS[scandalStage]}
             </span>
           </div>
           <StatBar label="Scandal Risk" value={stats.scandalRisk}
-            color={stats.scandalRisk > 60 ? '#E0212F' : stats.scandalRisk > 30 ? '#F5C518' : '#22c55e'} compact />
-          <StatBar label="Donor Support" value={stats.donorSupport} color="#F5C518" compact />
+            color={stats.scandalRisk > 60 ? '#c91424' : stats.scandalRisk > 30 ? '#d8ad3d' : '#2f9f6b'} compact />
+          <StatBar label="Developer Lobby" value={stats.donorSupport} color="#d8ad3d" compact />
         </div>
 
-        {/* Recent news */}
         {headlines.length > 0 && (
-          <div className="bg-white/5 border border-white/8 rounded-xl p-4">
-            <div className="text-xs text-white/40 uppercase tracking-widest mb-3">Recent Headlines</div>
+          <div className="paper-card p-4">
+            <div className="section-label mb-3">Recent Headlines</div>
             <div className="space-y-2">
               {headlines.slice(0, 4).map((h, i) => (
-                <div key={i} className="text-xs text-white/60 border-l-2 border-chaos-red/40 pl-2">{h}</div>
+                <div key={i} className="serif-note border-l-2 border-chaos-red/55 pl-2 text-xs leading-relaxed text-white/62">{h}</div>
               ))}
             </div>
           </div>
@@ -129,14 +124,13 @@ export function Dashboard() {
         <div className="h-4" />
       </div>
 
-      {/* Advance Day button */}
-      <div className="px-4 py-4 border-t border-white/8">
+      <div className="border-t border-chaos-gold/18 bg-black/18 px-4 py-4 backdrop-blur-sm">
         <motion.button
           onClick={advanceDay}
           whileTap={{ scale: 0.97 }}
-          className="w-full py-4 rounded-xl font-black text-lg text-white tracking-wide"
-          style={{ background: 'linear-gradient(135deg, #E0212F, #c01828)' }}>
-          {daysLeft <= 0 ? 'GO TO ELECTION NIGHT →' : `ADVANCE TO DAY ${day + 1} →`}
+          className="btn-primary w-full py-4 text-lg font-black"
+        >
+          {daysLeft <= 0 ? 'Go To Election Night' : `Advance To Day ${day + 1}`}
         </motion.button>
       </div>
 

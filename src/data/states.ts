@@ -1,59 +1,21 @@
-import type { USState } from '../types/election';
+import type { District } from '../types/election';
 
-export const usStates: USState[] = [
-  // Swing states
-  { code: 'PA', name: 'Pennsylvania', electoralVotes: 19, baseLean: -2, region: 'northeast', isSwing: true },
-  { code: 'MI', name: 'Michigan', electoralVotes: 15, baseLean: -3, region: 'midwest', isSwing: true },
-  { code: 'WI', name: 'Wisconsin', electoralVotes: 10, baseLean: -1, region: 'midwest', isSwing: true },
-  { code: 'AZ', name: 'Arizona', electoralVotes: 11, baseLean: 4, region: 'west', isSwing: true },
-  { code: 'NV', name: 'Nevada', electoralVotes: 6, baseLean: -2, region: 'west', isSwing: true },
-  { code: 'GA', name: 'Georgia', electoralVotes: 16, baseLean: 3, region: 'south', isSwing: true },
-  { code: 'NC', name: 'North Carolina', electoralVotes: 16, baseLean: 4, region: 'south', isSwing: true },
-  { code: 'FL', name: 'Florida', electoralVotes: 30, baseLean: 6, region: 'south', isSwing: true },
-  { code: 'OH', name: 'Ohio', electoralVotes: 17, baseLean: 8, region: 'midwest', isSwing: true },
-  { code: 'MN', name: 'Minnesota', electoralVotes: 10, baseLean: -6, region: 'midwest', isSwing: true },
-  // Safe D
-  { code: 'CA', name: 'California', electoralVotes: 54, baseLean: -30, region: 'west', isSwing: false },
-  { code: 'NY', name: 'New York', electoralVotes: 28, baseLean: -25, region: 'northeast', isSwing: false },
-  { code: 'IL', name: 'Illinois', electoralVotes: 19, baseLean: -18, region: 'midwest', isSwing: false },
-  { code: 'WA', name: 'Washington', electoralVotes: 12, baseLean: -20, region: 'west', isSwing: false },
-  { code: 'MA', name: 'Massachusetts', electoralVotes: 11, baseLean: -28, region: 'northeast', isSwing: false },
-  { code: 'MD', name: 'Maryland', electoralVotes: 10, baseLean: -26, region: 'south', isSwing: false },
-  { code: 'CO', name: 'Colorado', electoralVotes: 10, baseLean: -10, region: 'west', isSwing: false },
-  { code: 'VA', name: 'Virginia', electoralVotes: 13, baseLean: -10, region: 'south', isSwing: false },
-  { code: 'NJ', name: 'New Jersey', electoralVotes: 14, baseLean: -14, region: 'northeast', isSwing: false },
-  { code: 'CT', name: 'Connecticut', electoralVotes: 7, baseLean: -20, region: 'northeast', isSwing: false },
-  { code: 'OR', name: 'Oregon', electoralVotes: 8, baseLean: -16, region: 'west', isSwing: false },
-  { code: 'HI', name: 'Hawaii', electoralVotes: 4, baseLean: -30, region: 'west', isSwing: false },
-  { code: 'VT', name: 'Vermont', electoralVotes: 3, baseLean: -30, region: 'northeast', isSwing: false },
-  { code: 'RI', name: 'Rhode Island', electoralVotes: 4, baseLean: -22, region: 'northeast', isSwing: false },
-  { code: 'DE', name: 'Delaware', electoralVotes: 3, baseLean: -18, region: 'northeast', isSwing: false },
-  { code: 'NM', name: 'New Mexico', electoralVotes: 5, baseLean: -12, region: 'west', isSwing: false },
-  // Safe R
-  { code: 'TX', name: 'Texas', electoralVotes: 40, baseLean: 12, region: 'south', isSwing: false },
-  { code: 'TN', name: 'Tennessee', electoralVotes: 11, baseLean: 22, region: 'south', isSwing: false },
-  { code: 'IN', name: 'Indiana', electoralVotes: 11, baseLean: 18, region: 'midwest', isSwing: false },
-  { code: 'MO', name: 'Missouri', electoralVotes: 10, baseLean: 16, region: 'midwest', isSwing: false },
-  { code: 'SC', name: 'South Carolina', electoralVotes: 9, baseLean: 14, region: 'south', isSwing: false },
-  { code: 'AL', name: 'Alabama', electoralVotes: 9, baseLean: 28, region: 'south', isSwing: false },
-  { code: 'KY', name: 'Kentucky', electoralVotes: 8, baseLean: 26, region: 'south', isSwing: false },
-  { code: 'LA', name: 'Louisiana', electoralVotes: 8, baseLean: 20, region: 'south', isSwing: false },
-  { code: 'OK', name: 'Oklahoma', electoralVotes: 7, baseLean: 32, region: 'south', isSwing: false },
-  { code: 'KS', name: 'Kansas', electoralVotes: 6, baseLean: 22, region: 'midwest', isSwing: false },
-  { code: 'AR', name: 'Arkansas', electoralVotes: 6, baseLean: 28, region: 'south', isSwing: false },
-  { code: 'MS', name: 'Mississippi', electoralVotes: 6, baseLean: 18, region: 'south', isSwing: false },
-  { code: 'UT', name: 'Utah', electoralVotes: 6, baseLean: 16, region: 'west', isSwing: false },
-  { code: 'IA', name: 'Iowa', electoralVotes: 6, baseLean: 10, region: 'midwest', isSwing: false },
-  { code: 'NE', name: 'Nebraska', electoralVotes: 5, baseLean: 20, region: 'midwest', isSwing: false },
-  { code: 'ID', name: 'Idaho', electoralVotes: 4, baseLean: 30, region: 'west', isSwing: false },
-  { code: 'WV', name: 'West Virginia', electoralVotes: 4, baseLean: 30, region: 'south', isSwing: false },
-  { code: 'MT', name: 'Montana', electoralVotes: 4, baseLean: 16, region: 'west', isSwing: false },
-  { code: 'SD', name: 'South Dakota', electoralVotes: 3, baseLean: 26, region: 'midwest', isSwing: false },
-  { code: 'ND', name: 'North Dakota', electoralVotes: 3, baseLean: 28, region: 'midwest', isSwing: false },
-  { code: 'WY', name: 'Wyoming', electoralVotes: 3, baseLean: 40, region: 'west', isSwing: false },
-  { code: 'AK', name: 'Alaska', electoralVotes: 3, baseLean: 12, region: 'west', isSwing: false },
-  { code: 'NH', name: 'New Hampshire', electoralVotes: 4, baseLean: -6, region: 'northeast', isSwing: true },
-  { code: 'ME', name: 'Maine', electoralVotes: 4, baseLean: -8, region: 'northeast', isSwing: false },
+// Malta's 13 electoral districts — each returns 5 MPs by Single Transferable Vote (65 total).
+// baseLean: negative leans Labour (player/red), positive leans Nationalist (opponent/blue).
+export const districts: District[] = [
+  { code: 'D1', name: 'Valletta · Marsa · Ħamrun', seats: 5, baseLean: -18, region: 'harbour', isSwing: false },
+  { code: 'D2', name: 'Birżebbuġa · Marsaxlokk · Żejtun', seats: 5, baseLean: -24, region: 'south', isSwing: false },
+  { code: 'D3', name: 'Cottonera · Fgura · Żabbar', seats: 5, baseLean: -20, region: 'harbour', isSwing: false },
+  { code: 'D4', name: 'Paola · Tarxien · Santa Luċija', seats: 5, baseLean: -16, region: 'harbour', isSwing: true },
+  { code: 'D5', name: 'Żurrieq · Qrendi · Siġġiewi', seats: 5, baseLean: -8, region: 'south', isSwing: true },
+  { code: 'D6', name: 'Rabat · Dingli · Attard', seats: 5, baseLean: 6, region: 'central', isSwing: true },
+  { code: 'D7', name: 'Mosta · Naxxar · Għargħur', seats: 5, baseLean: 4, region: 'central', isSwing: true },
+  { code: 'D8', name: 'Sliema · Gżira · Pembroke', seats: 5, baseLean: 22, region: 'north', isSwing: false },
+  { code: 'D9', name: 'Birkirkara · Balzan · Lija', seats: 5, baseLean: 14, region: 'central', isSwing: true },
+  { code: 'D10', name: 'St Julian\'s · Swieqi · San Ġwann', seats: 5, baseLean: 18, region: 'north', isSwing: false },
+  { code: 'D11', name: 'Mellieħa · St Paul\'s Bay · Mġarr', seats: 5, baseLean: 2, region: 'north', isSwing: true },
+  { code: 'D12', name: 'Qormi · Żebbuġ · Santa Venera', seats: 5, baseLean: -12, region: 'harbour', isSwing: true },
+  { code: 'D13', name: 'Gozo & Comino', seats: 5, baseLean: 8, region: 'gozo', isSwing: true },
 ];
 
-export const swingStates = usStates.filter((s) => s.isSwing);
+export const swingDistricts = districts.filter((d) => d.isSwing);

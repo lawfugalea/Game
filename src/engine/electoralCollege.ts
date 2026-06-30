@@ -1,40 +1,39 @@
 import type { EVProjection, Stats } from '../types/game';
-import { usStates } from '../data/states';
-import { clamp } from '../utils/random';
+import { districts } from '../data/states';
 
-export function projectEV(playerStats: Stats, opponentStats: Stats): EVProjection {
-  const playerAdvantage = playerStats.popularity - opponentStats.popularity;
+// Player vote share (0..1) in a district, from its base lean, the national mood, and demographics.
+export function districtPlayerShare(d: typeof districts[number], playerStats: Stats, opponentStats: Stats): number {
+  const advantage = playerStats.popularity - opponentStats.popularity; // -100..100
+  // Tightened so a polling lead converts to seats only when sustained, not off one good week.
+  let share = 0.5 - d.baseLean / 100 + advantage * 0.003;
 
-  let playerEV = 0, opponentEV = 0, tossupEV = 0;
-
-  for (const state of usStates) {
-    // Shift the state lean by the national poll advantage + demographic factors
-    const urbanBonus = state.region === 'northeast' || state.region === 'west'
-      ? (playerStats.urban - opponentStats.urban) * 0.15
-      : 0;
-    const ruralBonus = state.region === 'south' || state.region === 'midwest'
-      ? (opponentStats.rural - playerStats.rural) * 0.15
-      : 0;
-
-    const adjustedLean = state.baseLean
-      - (playerAdvantage * 0.5)
-      - urbanBonus
-      + ruralBonus;
-
-    const margin = clamp(Math.abs(adjustedLean), 0, 100);
-
-    if (adjustedLean < -5) {
-      playerEV += state.electoralVotes;        // player (Liberty/Progress) wins
-    } else if (adjustedLean > 5) {
-      opponentEV += state.electoralVotes;       // opponent wins
-    } else {
-      // Tossup — give to whoever is ahead nationally
-      if (playerAdvantage > 0) playerEV += state.electoralVotes;
-      else if (playerAdvantage < 0) opponentEV += state.electoralVotes;
-      else tossupEV += state.electoralVotes;
-    }
-    void margin;
+  // Labour (player) over-performs with working-class harbour/south; Nationalist with affluent north/central.
+  if (d.region === 'harbour' || d.region === 'south') {
+    share += (playerStats.workingClass - opponentStats.workingClass) * 0.0012;
+  }
+  if (d.region === 'north' || d.region === 'central') {
+    share += (playerStats.urban - opponentStats.urban) * 0.0012;
+  }
+  // Gozo swings on momentum and trust (parochial, retail politics)
+  if (d.region === 'gozo') {
+    share += (playerStats.momentum - opponentStats.momentum) * 0.001;
   }
 
-  return { player: playerEV, opponent: opponentEV, tossup: tossupEV };
+  return Math.max(0.05, Math.min(0.95, share));
+}
+
+// Projects the 65-seat parliament (STV-style proportional split within each 5-seat district).
+export function projectEV(playerStats: Stats, opponentStats: Stats): EVProjection {
+  let player = 0;
+  let opponent = 0;
+
+  for (const d of districts) {
+    const share = districtPlayerShare(d, playerStats, opponentStats);
+    const playerSeats = Math.round(share * d.seats);
+    player += playerSeats;
+    opponent += d.seats - playerSeats;
+  }
+
+  // Proportional system has no "tossup" bucket; one side always reaches 33 of 65.
+  return { player, opponent, tossup: 0 };
 }

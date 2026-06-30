@@ -5,10 +5,10 @@ export type ScandalStage = 0 | 1 | 2 | 3 | 4;
 
 export const SCANDAL_LABELS: Record<ScandalStage, string> = {
   0: 'Clean',
-  1: 'Rumours',
-  2: 'Leaked',
+  1: 'Whispers',
+  2: 'Leaked Chats',
   3: 'Front Page',
-  4: 'Congressional Hearing',
+  4: 'Magisterial Inquiry',
 };
 
 export const SCANDAL_STAT_HIT: Record<ScandalStage, Partial<Stats>> = {

@@ -28,3 +28,11 @@ export function shuffle<T>(arr: T[]): T[] {
 export function chance(pct: number) {
   return Math.random() * 100 < pct;
 }
+
+// Deterministic pseudo-random in [0,1) from an integer seed. Used for polling "house effects"
+// so a given day's published poll is stable across re-computes within that day, but each day's
+// poll carries its own sampling bias — like real tracking polls that jitter day to day.
+export function seededUnit(seed: number) {
+  const x = Math.sin(seed * 127.1 + 311.7) * 43758.5453;
+  return x - Math.floor(x);
+}

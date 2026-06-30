@@ -27,60 +27,59 @@ export function SaveModal({ onClose }: { onClose: () => void }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm px-4 pb-4"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/72 px-4 pb-4 backdrop-blur-sm sm:items-center"
     >
       <motion.div
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 40, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-2xl border border-white/10 p-5"
-        style={{ background: '#0d0d1a' }}
+        className="broadcast-card w-full max-w-md p-5"
       >
         <div className="flex items-center justify-between mb-4">
           <div>
-            <div className="text-xs text-white/40 uppercase tracking-widest">Save Campaign</div>
-            <div className="text-white font-black text-lg">Choose a Slot</div>
+            <div className="section-label">Save Campaign</div>
+            <div className="display-title text-xl text-chaos-ink">Choose a Slot</div>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 text-white/60 hover:text-white">✕</button>
+          <button onClick={onClose} className="btn-ghost h-8 w-8 text-sm font-black hover:text-white">X</button>
         </div>
 
         <div className="space-y-3">
           {slots.map((s) => (
-            <div key={s.slot} className="border border-white/10 bg-white/4 rounded-xl p-3 flex items-center gap-3">
-              <div className="shrink-0 w-9 h-9 rounded-lg bg-chaos-blue/20 border border-chaos-blue/30 flex items-center justify-center">
-                <span className="text-chaos-blue font-black text-sm">{s.slot + 1}</span>
+            <div key={s.slot} className="paper-card flex items-center gap-3 p-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-chaos-blue/35 bg-chaos-blue/18">
+                <span className="display-title text-sm text-chaos-blue">{s.slot + 1}</span>
               </div>
               <div className="flex-1 min-w-0">
                 {s.savedAt ? (
                   <>
-                    <div className="text-white text-sm font-semibold truncate">{s.candidateName ?? 'Unknown'}</div>
-                    <div className="text-white/40 text-xs">Day {s.day} · {new Date(s.savedAt).toLocaleString()}</div>
+                    <div className="truncate text-sm font-black text-chaos-ink">{s.candidateName ?? 'Unknown'}</div>
+                    <div className="text-xs text-white/42">Day {s.day} · {new Date(s.savedAt).toLocaleString()}</div>
                   </>
                 ) : (
-                  <div className="text-white/30 text-sm italic">Empty slot</div>
+                  <div className="serif-note text-sm italic text-white/34">Empty slot</div>
                 )}
               </div>
               {s.savedAt && (
                 <button
                   onClick={() => handleDelete(s.slot)}
-                  className="shrink-0 text-xs px-2 py-1.5 rounded-lg border border-white/10 text-white/40 hover:text-chaos-red hover:border-chaos-red/40"
+                  className="btn-ghost shrink-0 px-2 py-1.5 text-xs font-bold hover:border-chaos-red/45 hover:text-chaos-red"
                 >
                   Delete
                 </button>
               )}
               <button
                 onClick={() => handleSave(s.slot)}
-                className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all active:scale-95"
-                style={{ background: justSaved === s.slot ? '#22c55e' : 'linear-gradient(135deg, #E0212F, #c01828)' }}
+                className="shrink-0 rounded-sm px-3 py-1.5 text-xs font-black uppercase text-white transition-all active:scale-95"
+                style={{ background: justSaved === s.slot ? '#2f9f6b' : 'linear-gradient(135deg, #df1e31, #a90f1d)' }}
               >
-                {justSaved === s.slot ? 'Saved ✓' : s.savedAt ? 'Overwrite' : 'Save'}
+                {justSaved === s.slot ? 'Saved' : s.savedAt ? 'Overwrite' : 'Save'}
               </button>
             </div>
           ))}
         </div>
 
-        <p className="text-center text-white/20 text-xs mt-4">Your campaign also autosaves every day.</p>
+        <p className="mt-4 text-center text-xs text-white/24">Your campaign also autosaves every day.</p>
       </motion.div>
     </motion.div>
   );

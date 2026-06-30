@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
-import { usStates } from '../data/states';
+import { districts } from '../data/states';
+import { districtPlayerShare } from '../engine/electoralCollege';
 import { EV_TO_WIN } from '../utils/constants';
+import { CandidatePortrait, ElectionNightBackdrop } from '../components/art';
 
 export function ElectionNight() {
   const { candidate, opponent, stats, opponentStats, electoralVotes } = useGameStore();
@@ -10,90 +12,87 @@ export function ElectionNight() {
   const [done, setDone] = useState(false);
 
   const won = electoralVotes.player >= EV_TO_WIN;
-  const sortedStates = [...usStates].sort((a) => (a.isSwing ? -1 : 1));
 
   useEffect(() => {
-    if (revealed < sortedStates.length) {
-      const t = setTimeout(() => setRevealed((r) => r + 1), 120);
+    if (revealed < districts.length) {
+      const t = setTimeout(() => setRevealed((r) => r + 1), 220);
       return () => clearTimeout(t);
     } else {
       setTimeout(() => setDone(true), 800);
     }
-  }, [revealed, sortedStates.length]);
+  }, [revealed]);
 
   if (!candidate || !opponent) return null;
 
-  const advantage = stats.popularity - opponentStats.popularity;
-
   return (
-    <div className="min-h-screen flex flex-col px-4 py-6" style={{ background: '#050510' }}>
-      {/* Header */}
+    <div className="screen relative flex min-h-screen flex-col px-4 py-6">
+      <ElectionNightBackdrop />
       <div className="text-center mb-6">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-          <span className="text-xs font-black text-white uppercase tracking-widest">ELECTION NIGHT COVERAGE</span>
+          <div className="h-2 w-2 rounded-full bg-chaos-red alert-pulse" />
+          <span className="text-xs font-black uppercase text-white">RIZULTAT · LIVE RESULTS</span>
         </div>
-        <h2 className="text-3xl font-black text-white">Election Night</h2>
+        <h2 className="display-title text-4xl leading-none text-chaos-ink">Election Night</h2>
       </div>
 
-      {/* EV counter */}
-      <div className="flex justify-center gap-12 mb-6">
-        <motion.div className="text-center" animate={{ scale: done && won ? [1, 1.1, 1] : 1 }} transition={{ repeat: done && won ? 3 : 0, duration: 0.4 }}>
-          <div className={`text-5xl font-black ${won ? 'text-chaos-gold' : 'text-chaos-red'}`}>{electoralVotes.player}</div>
-          <div className="text-white/50 text-sm">{candidate.name}</div>
-          {won && <div className="text-chaos-gold text-xs font-bold mt-1">✓ ELECTED</div>}
+      <div className="broadcast-card relative z-10 mb-6 flex justify-center gap-5 p-4">
+        <motion.div className="flex-1 text-center" animate={{ scale: done && won ? [1, 1.1, 1] : 1 }} transition={{ repeat: done && won ? 3 : 0, duration: 0.4 }}>
+          <CandidatePortrait candidate={candidate} className="mx-auto mb-2 h-16 w-16" label={`${candidate.name} portrait`} />
+          <div className={`display-title text-6xl leading-none ${won ? 'text-chaos-gold result-flash' : 'text-chaos-red'}`}>{electoralVotes.player}</div>
+          <div className="text-xs font-bold uppercase text-white/48">{candidate.name}</div>
+          {won && <div className="mt-1 text-xs font-black uppercase text-chaos-gold">Governs</div>}
         </motion.div>
         <div className="text-center self-end pb-4">
-          <div className="text-white/20 text-sm">{EV_TO_WIN} needed</div>
+          <div className="rounded-sm border border-chaos-gold/35 bg-chaos-gold/12 px-2 py-1 text-xs font-black text-chaos-gold">{EV_TO_WIN}</div>
+          <div className="mt-1 text-[0.62rem] uppercase text-white/30">to govern</div>
         </div>
-        <motion.div className="text-center" animate={{ scale: done && !won ? [1, 1.1, 1] : 1 }} transition={{ repeat: done && !won ? 3 : 0, duration: 0.4 }}>
-          <div className={`text-5xl font-black ${!won ? 'text-chaos-gold' : 'text-chaos-blue'}`}>{electoralVotes.opponent}</div>
-          <div className="text-white/50 text-sm">{opponent.name}</div>
-          {!won && <div className="text-chaos-gold text-xs font-bold mt-1">✓ ELECTED</div>}
+        <motion.div className="flex-1 text-center" animate={{ scale: done && !won ? [1, 1.1, 1] : 1 }} transition={{ repeat: done && !won ? 3 : 0, duration: 0.4 }}>
+          <CandidatePortrait candidate={opponent} className="mx-auto mb-2 h-16 w-16" label={`${opponent.name} portrait`} />
+          <div className={`display-title text-6xl leading-none ${!won ? 'text-chaos-gold result-flash' : 'text-chaos-blue'}`}>{electoralVotes.opponent}</div>
+          <div className="text-xs font-bold uppercase text-white/48">{opponent.name}</div>
+          {!won && <div className="mt-1 text-xs font-black uppercase text-chaos-gold">Governs</div>}
         </motion.div>
       </div>
 
-      {/* State by state grid */}
-      <div className="flex flex-wrap gap-1.5 justify-center mb-6">
-        {sortedStates.slice(0, revealed).map((state, i) => {
-          const stateAdj = state.baseLean - advantage * 0.5;
-          const playerWins = stateAdj < 0;
+      <div className="mb-6 grid grid-cols-4 gap-2">
+        {districts.slice(0, revealed).map((d, i) => {
+          const share = districtPlayerShare(d, stats, opponentStats);
+          const playerSeats = Math.round(share * d.seats);
+          const playerWins = playerSeats >= 3;
           return (
-            <motion.div key={state.code}
+            <motion.div key={d.code}
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: i * 0.02 }}
-              className="rounded px-2 py-1 text-xs font-bold text-white text-center"
+              className="rounded-sm border px-2 py-2 text-center text-xs font-black text-white"
               style={{
-                background: playerWins ? 'rgba(224,33,47,0.3)' : 'rgba(30,111,200,0.3)',
-                border: `1px solid ${playerWins ? '#E0212F60' : '#1E6FC860'}`,
-                minWidth: 36,
+                background: playerWins ? 'rgba(201,20,36,0.34)' : 'rgba(19,87,159,0.34)',
+                borderColor: playerWins ? '#c9142470' : '#13579f70',
               }}>
-              {state.code}
-              <div className="text-white/30 text-xs">{state.electoralVotes}</div>
+              <div className="display-title">{d.code}</div>
+              <div className="text-[0.65rem] text-white/52">{playerSeats}-{d.seats - playerSeats}</div>
             </motion.div>
           );
         })}
       </div>
 
-      {/* Final result */}
       {done && (
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
-          className={`rounded-2xl p-6 text-center border ${won ? 'border-chaos-gold/40 bg-chaos-gold/10' : 'border-white/10 bg-white/5'}`}>
-          <div className="text-4xl mb-3">{won ? '🎉' : '😔'}</div>
-          <h3 className={`text-2xl font-black mb-2 ${won ? 'text-chaos-gold' : 'text-white'}`}>
-            {won ? `${candidate.name} wins the Presidency!` : `${opponent.name} wins the election`}
+          className={`broadcast-card p-6 text-center ${won ? 'border-chaos-gold/45 bg-chaos-gold/10' : 'border-white/10 bg-white/5'}`}>
+          <div className="section-label mb-2">{won ? 'Majority Confirmed' : 'Opposition Majority'}</div>
+          <h3 className={`display-title mb-2 text-2xl leading-tight ${won ? 'text-chaos-gold' : 'text-chaos-ink'}`}>
+            {won ? `${candidate.name} becomes Prime Minister!` : `${opponent.name} forms the next government`}
           </h3>
-          <p className="text-white/50 text-sm mb-4">
+          <p className="serif-note text-sm leading-relaxed text-white/54 mb-4">
             {won
-              ? `${electoralVotes.player} electoral votes. The nation has spoken.`
-              : `You finished with ${electoralVotes.player} electoral votes — ${EV_TO_WIN - electoralVotes.player} short of victory.`}
+              ? `${electoralVotes.player} of 65 seats. Castille is yours.`
+              : `You finished with ${electoralVotes.player} seats, ${EV_TO_WIN - electoralVotes.player} short of a majority.`}
           </p>
           <button
             onClick={() => useGameStore.setState({ phase: 'game-over' })}
-            className="w-full py-3 rounded-xl font-bold text-white"
-            style={{ background: won ? 'linear-gradient(135deg, #b45309, #F5C518)' : '#333' }}>
-            See Final Stats →
+            className="btn-primary w-full py-3 text-sm font-black"
+            style={{ background: won ? 'linear-gradient(135deg, #8a641a, #d8ad3d)' : undefined }}>
+            See Final Stats
           </button>
         </motion.div>
       )}

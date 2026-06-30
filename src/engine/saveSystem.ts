@@ -61,6 +61,12 @@ export function loadAutosave(): GameState | null {
   }
 }
 
+// Wipes every manual slot and the autosave — used by "Delete all saved data".
+export function clearAllSaves(): void {
+  for (let i = 0; i < NUM_SLOTS; i++) localStorage.removeItem(`${SAVE_PREFIX}${i}`);
+  localStorage.removeItem(AUTOSAVE_KEY);
+}
+
 export function autosaveInfo(): SaveInfo | null {
   const raw = localStorage.getItem(AUTOSAVE_KEY);
   if (!raw) return null;

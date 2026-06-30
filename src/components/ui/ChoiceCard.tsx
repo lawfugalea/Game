@@ -20,32 +20,33 @@ export function ChoiceCard({ choice, index, onSelect, disabled, locked, lockReas
     <button
       onClick={onSelect}
       disabled={disabled || locked}
-      className="card-in w-full text-left border border-white/10 bg-white/4 hover:border-chaos-red/60 hover:bg-white/8 active:scale-98 transition-all duration-200 rounded-xl p-4 disabled:opacity-40 disabled:cursor-not-allowed"
+      className="card-in paper-card w-full p-4 text-left transition-all duration-200 hover:border-chaos-gold/55 hover:bg-white/10 active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-45"
       style={{ animationDelay: `${index * 80}ms` }}
     >
       <div className="flex gap-3 items-start">
-        <div className={`shrink-0 w-8 h-8 rounded-lg border flex items-center justify-center ${locked ? 'bg-white/5 border-white/10' : 'bg-chaos-red/20 border-chaos-red/30'}`}>
-          <span className={`font-black text-sm ${locked ? 'text-white/40' : 'text-chaos-red'}`}>{locked ? '⚡' : letters[index]}</span>
+        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border ${locked ? 'border-white/10 bg-black/20' : 'border-chaos-red/45 bg-chaos-red/18'}`}>
+          <span className={`display-title text-sm ${locked ? 'text-white/38' : 'text-chaos-red'}`}>{locked ? '!' : letters[index]}</span>
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-white font-semibold text-sm leading-snug mb-1">{choice.label}</div>
+          <div className="text-sm font-black leading-snug text-chaos-ink">{choice.label}</div>
           {choice.tooltip && (
-            <div className="text-white/40 text-xs leading-relaxed mb-2">{choice.tooltip}</div>
+            <div className="serif-note mt-1 text-xs leading-relaxed text-white/50">{choice.tooltip}</div>
           )}
           {locked && lockReason && (
-            <div className="inline-block text-xs px-1.5 py-0.5 rounded font-semibold mb-1" style={{ background: 'rgba(245,197,24,0.15)', color: '#F5C518' }}>
+            <div className="mb-1 mt-2 inline-block rounded-sm border border-chaos-gold/28 bg-chaos-gold/12 px-2 py-0.5 text-[0.65rem] font-black uppercase text-chaos-gold">
               {lockReason}
             </div>
           )}
           {!locked && previewEffects.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
+            <div className="mt-3 flex flex-wrap gap-1.5">
               {previewEffects.map(([key, val]) => (
                 <span
                   key={key}
-                  className="text-xs px-1.5 py-0.5 rounded font-semibold"
+                  className="rounded-sm border px-1.5 py-0.5 text-[0.62rem] font-black uppercase"
                   style={{
-                    background: (val as number) >= 0 ? 'rgba(34,197,94,0.15)' : 'rgba(224,33,47,0.15)',
-                    color: (val as number) >= 0 ? '#4ade80' : '#f87171',
+                    background: (val as number) >= 0 ? 'rgba(47,159,107,0.14)' : 'rgba(201,20,36,0.14)',
+                    borderColor: (val as number) >= 0 ? 'rgba(47,159,107,0.32)' : 'rgba(201,20,36,0.32)',
+                    color: (val as number) >= 0 ? '#61d39b' : '#ff7b86',
                   }}
                 >
                   {key.replace(/([A-Z])/g, ' $1').trim()} {statDelta(val as number)}

@@ -1,6 +1,9 @@
-export const TOTAL_DAYS = 120;
-export const EV_TO_WIN = 270;
-export const TOTAL_EV = 538;
+// Malta general election: ~5-week campaign, 13 districts × 5 = 65 seats, 33 for a majority.
+export const TOTAL_DAYS = 35;
+export const TOTAL_SEATS = 65;
+export const EV_TO_WIN = 33; // seats needed to govern
+// Kept as an alias so older references compile; equals the full house.
+export const TOTAL_EV = TOTAL_SEATS;
 
 export const DIFFICULTY_MODIFIERS = {
   easy:   { opponentMult: 0.7,  eventPenaltyMult: 0.7,  scandalsFreq: 0.5 },
@@ -13,17 +16,17 @@ export const DEFAULT_STATS = {
   popularity: 48,
   trust: 50,
   momentum: 50,
-  funds: 12_000_000,
+  funds: 1_800_000, // campaign war chest, in euros
   mediaApproval: 50,
   partySupport: 65,
-  donorSupport: 55,
+  donorSupport: 55, // business / developer lobby goodwill
   economyConfidence: 50,
-  foreignPolicy: 50,
+  foreignPolicy: 50, // EU standing & neutrality
   youthVote: 45,
   workingClass: 45,
-  urban: 55,
-  rural: 35,
-  independents: 42,
+  urban: 55, // harbour / Sliema-side urban voters
+  rural: 35, // Gozo & village Malta
+  independents: 42, // floaters / switchers
   scandalRisk: 10,
   stamina: 85,
 };

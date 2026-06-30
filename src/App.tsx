@@ -12,7 +12,7 @@ export default function App() {
   const phase = useGameStore((s) => s.phase);
 
   return (
-    <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100vh', position: 'relative' }}>
+    <div className="app-shell">
       {phase === 'menu' && <MainMenu />}
       {phase === 'candidate-select' && <CandidateSelect />}
       {phase === 'campaign' && <Dashboard />}

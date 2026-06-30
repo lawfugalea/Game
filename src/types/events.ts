@@ -15,6 +15,8 @@ export interface Choice {
   longTermDelay?: number;
   headline: string;
   unlocks?: string[];
+  // Story continuity: flags this choice records, which later beats/events can react to
+  setsFlags?: string[];
 }
 
 export interface GameEvent {
@@ -32,4 +34,10 @@ export interface GameEvent {
   participants?: string[];
   // M9: only ever appears when unlocked by another choice's `unlocks`, never at random
   branchOnly?: boolean;
+  // Story arc: scripted beats that drive the campaign narrative forward in order.
+  storyBeat?: boolean;
+  minDay?: number;          // earliest day this beat may fire
+  maxDay?: number;          // latest day this beat may fire
+  requiresFlags?: string[]; // only if all these story flags are set
+  forbidsFlags?: string[];  // only if none of these story flags are set
 }
