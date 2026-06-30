@@ -34,7 +34,17 @@ export function determineEnding(won: boolean, evPlayer: number, stats: Stats): E
         tone: 'gold',
       };
     }
-    // 3. Won, but on scandal and broken trust
+    // 3. Won as Malta's pro-European standard-bearer
+    if (stats.foreignPolicy >= 62 && stats.trust >= 50) {
+      return {
+        id: 'europe',
+        emoji: '🇪🇺',
+        label: 'Malta\'s European Moment',
+        desc: 'You won a mandate to put Malta back at the heart of Europe. Brussels is already returning your calls, and the summit invitations are stacking up. A small island, suddenly punching above its weight.',
+        tone: 'gold',
+      };
+    }
+    // 4. Won, but on scandal and broken trust
     if (stats.scandalRisk >= 55 || stats.trust < 42) {
       return {
         id: 'hollow',

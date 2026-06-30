@@ -17,6 +17,9 @@ export interface Choice {
   unlocks?: string[];
   // Story continuity: flags this choice records, which later beats/events can react to
   setsFlags?: string[];
+  // Skill-check gating: this option is locked unless the player meets every stat threshold here
+  // (e.g. { trust: 60 } — a credible clean-government attack needs real standing first).
+  prerequisites?: Partial<Record<keyof Stats, number>>;
 }
 
 export interface GameEvent {

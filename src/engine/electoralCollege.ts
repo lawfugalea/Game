@@ -7,16 +7,31 @@ export function districtPlayerShare(d: typeof districts[number], playerStats: St
   // Tightened so a polling lead converts to seats only when sustained, not off one good week.
   let share = 0.5 - d.baseLean / 100 + advantage * 0.003;
 
-  // Labour (player) over-performs with working-class harbour/south; Nationalist with affluent north/central.
+  // Demographic over/under-performance. Weights are tuned so a strong (~30-40pt) lead in the
+  // relevant group can actually flip a swing district's rounded seat — small enough that the
+  // district's base lean and national popularity still dominate.
+  // Labour (player) over-performs with the working-class harbour/south; Nationalist with the
+  // affluent north/central.
   if (d.region === 'harbour' || d.region === 'south') {
-    share += (playerStats.workingClass - opponentStats.workingClass) * 0.0012;
+    share += (playerStats.workingClass - opponentStats.workingClass) * 0.0022;
   }
   if (d.region === 'north' || d.region === 'central') {
-    share += (playerStats.urban - opponentStats.urban) * 0.0012;
+    share += (playerStats.urban - opponentStats.urban) * 0.0022;
   }
-  // Gozo swings on momentum and trust (parochial, retail politics)
+  // The affluent, pro-EU north (Sliema-side, St Julian's) and the educated central belt weigh
+  // your standing in Europe — these are the districts where EU credibility wins switchers.
+  if (d.region === 'north' || d.region === 'central') {
+    share += (playerStats.foreignPolicy - opponentStats.foreignPolicy) * 0.0026;
+  }
+  // The villages of the south are swayed by your rural standing as much as by class.
+  if (d.region === 'south') {
+    share += (playerStats.rural - opponentStats.rural) * 0.0016;
+  }
+  // Gozo & Comino is village Malta writ large: it swings on rural standing, with a parochial
+  // retail-politics momentum kicker.
   if (d.region === 'gozo') {
-    share += (playerStats.momentum - opponentStats.momentum) * 0.001;
+    share += (playerStats.rural - opponentStats.rural) * 0.003;
+    share += (playerStats.momentum - opponentStats.momentum) * 0.0008;
   }
 
   return Math.max(0.05, Math.min(0.95, share));

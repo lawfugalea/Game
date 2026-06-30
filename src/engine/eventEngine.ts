@@ -54,6 +54,9 @@ function contextualWeight(ev: GameEvent, state: GameState): number {
   // A shaky economy dominates the agenda.
   if (stats.economyConfidence < 38 && cat === 'economy') m *= 1.7;
 
+  // A weak standing in Europe drags foreign/EU stories into the cycle.
+  if (stats.foreignPolicy < 40 && cat === 'foreign') m *= 1.6;
+
   // Closing stretch: the air war and the ground game crowd out the routine business.
   if (progress > 0.7) {
     if (cat === 'rally' || cat === 'debate' || cat === 'press') m *= 1.4;

@@ -139,7 +139,7 @@ export const storyEvents: GameEvent[] = [
     minDay: 14,
     weight: 1,
     choices: [
-      { label: 'Reaffirm every promise, fund it through growth', effects: { popularity: 6, economyConfidence: -5, trust: 2 }, headline: '"{name}" stands by every pledge: "Growth will pay for it"' },
+      { label: 'Reaffirm every promise, fund it through growth', effects: { popularity: 6, economyConfidence: -5, trust: 2 }, prerequisites: { economyConfidence: 45 }, headline: '"{name}" stands by every pledge: "Growth will pay for it"' },
       { label: 'Prioritise honestly — drop what you can\'t fund', effects: { trust: 9, mediaApproval: 5, popularity: -3 }, setsFlags: ['honest-trim'], headline: '"{name}" trims pledges: "I will not promise what I cannot deliver"' },
       { label: 'Blame the deficit you inherited', effects: { momentum: 3, trust: -4, mediaApproval: -2 }, headline: '"{name}" blames "the mess we inherited" for manifesto doubts' },
     ],
@@ -155,7 +155,7 @@ export const storyEvents: GameEvent[] = [
     choices: [
       { label: 'Go negative right back, harder', effects: { momentum: 7, trust: -6, mediaApproval: -3 }, headline: '"{name}" returns fire in increasingly bitter campaign' },
       { label: 'Rise above it and stay on message', effects: { trust: 8, independents: 6, momentum: -2 }, headline: '"{name}" refuses to "drag the country through the mud"' },
-      { label: 'Sue over the most defamatory claims', effects: { trust: 4, scandalRisk: -4, funds: -500000, mediaApproval: 3 }, headline: '"{name}" files libel action over rival\'s "lies"' },
+      { label: 'Sue over the most defamatory claims', effects: { trust: 4, scandalRisk: -4, funds: -500000, mediaApproval: 3 }, prerequisites: { funds: 500000, trust: 45 }, headline: '"{name}" files libel action over rival\'s "lies"' },
     ],
   },
   {
@@ -170,7 +170,7 @@ export const storyEvents: GameEvent[] = [
     weight: 1,
     choices: [
       { label: 'Dominate on your core theme', effects: { popularity: 10, momentum: 8, stamina: -8 }, headline: '"{name}" owns the debate stage on home turf' },
-      { label: 'Land a knockout attack line', effects: { momentum: 9, mediaApproval: 4, trust: -4, stamina: -8 }, headline: '"{name}" lands the debate\'s defining blow' },
+      { label: 'Land a knockout attack line', effects: { momentum: 9, mediaApproval: 4, trust: -4, stamina: -8 }, prerequisites: { momentum: 50 }, headline: '"{name}" lands the debate\'s defining blow' },
       { label: 'Be calm, reassuring, statesmanlike', effects: { trust: 12, independents: 8, popularity: 4, stamina: -7 }, headline: '"{name}" looks prime-ministerial in measured debate display' },
     ],
   },
