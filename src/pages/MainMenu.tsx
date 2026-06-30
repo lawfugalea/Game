@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
-import { listSaves, loadGame, loadAutosave, autosaveInfo, clearAllSaves } from '../engine/saveSystem';
+import { listSaves, loadGame, loadAutosave, autosaveInfo, clearAllSaves, loadProfile } from '../engine/saveSystem';
+import { ACHIEVEMENTS } from '../engine/achievements';
 import { MainMenuHeroArt } from '../components/art';
 import { playTap, isMuted, toggleMuted } from '../engine/audioSystem';
 import type { DifficultyLevel } from '../types/game';
@@ -18,10 +19,13 @@ export function MainMenu() {
   const [confirmWipe, setConfirmWipe] = useState(false);
   const [refresh, setRefresh] = useState(0);
   const [muted, setMuted] = useState(isMuted());
+  const [showTrophies, setShowTrophies] = useState(false);
   void refresh;
   const saves = listSaves();
   const auto = autosaveInfo();
   const hasSave = auto !== null || saves.some((s) => s.savedAt);
+  const profile = loadProfile();
+  const earnedSet = new Set(profile.earned);
 
   function handleWipe() {
     clearAllSaves();
@@ -156,6 +160,39 @@ export function MainMenu() {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-5">
+          <button
+            onClick={() => { playTap(); setShowTrophies((v) => !v); }}
+            className="paper-card flex w-full items-center justify-between p-3 text-left"
+          >
+            <span className="text-sm font-black text-chaos-ink">Trophy Cabinet</span>
+            <span className="text-xs font-bold text-chaos-gold">{profile.earned.length}/{ACHIEVEMENTS.length} · {showTrophies ? 'Hide' : 'Show'}</span>
+          </button>
+          {showTrophies && (
+            <div className="broadcast-card mt-2 p-4">
+              <div className="mb-3 grid grid-cols-3 gap-2 text-center">
+                <div><div className="display-title text-xl text-chaos-ink">{profile.campaigns}</div><div className="text-[0.6rem] font-black uppercase text-white/40">Campaigns</div></div>
+                <div><div className="display-title text-xl text-chaos-gold">{profile.wins}</div><div className="text-[0.6rem] font-black uppercase text-white/40">Wins</div></div>
+                <div><div className="display-title text-xl text-chaos-ink">{profile.bestSeats}</div><div className="text-[0.6rem] font-black uppercase text-white/40">Best Seats</div></div>
+              </div>
+              <div className="grid grid-cols-1 gap-2">
+                {ACHIEVEMENTS.map((a) => {
+                  const got = earnedSet.has(a.id);
+                  return (
+                    <div key={a.id} className={`flex items-center gap-3 rounded-sm border p-2 ${got ? 'border-chaos-gold/35 bg-chaos-gold/10' : 'border-white/8 bg-black/15 opacity-55'}`}>
+                      <span className="text-lg">{got ? a.emoji : '🔒'}</span>
+                      <div className="min-w-0">
+                        <div className="text-xs font-black text-chaos-ink">{a.label}</div>
+                        <div className="serif-note text-[0.68rem] leading-snug text-white/50">{a.desc}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>

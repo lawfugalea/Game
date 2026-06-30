@@ -1,9 +1,12 @@
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { StatBar } from '../components/ui/StatBar';
 import { formatFunds } from '../utils/format';
 import { EV_TO_WIN } from '../utils/constants';
 import { determineEnding } from '../engine/endings';
+import { getAchievement } from '../engine/achievements';
+import { recordCampaignResult } from '../engine/saveSystem';
 import { CandidatePortrait, ParliamentSeatsMotif } from '../components/art';
 
 const TONE_COLOR: Record<string, string> = {
@@ -13,11 +16,20 @@ const TONE_COLOR: Record<string, string> = {
 };
 
 export function GameOver() {
-  const { candidate, opponent, stats, electoralVotes, day, goToMainMenu } = useGameStore();
-  if (!candidate || !opponent) return null;
+  const { candidate, opponent, stats, electoralVotes, day, achievements, goToMainMenu } = useGameStore();
 
   const won = electoralVotes.player >= EV_TO_WIN;
+
+  // Tally this finished campaign into the cross-run profile exactly once.
+  useEffect(() => {
+    recordCampaignResult(electoralVotes.player, won);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (!candidate || !opponent) return null;
+
   const ending = determineEnding(won, electoralVotes.player, stats);
+  const earned = (achievements ?? []).map(getAchievement).filter((a) => a != null);
 
   return (
     <div className="screen flex min-h-screen flex-col px-4 py-8">
@@ -53,6 +65,23 @@ export function GameOver() {
             <span className="text-sm font-bold text-chaos-gold">{formatFunds(stats.funds)}</span>
           </div>
         </div>
+
+        {earned.length > 0 && (
+          <div className="broadcast-card mb-4 p-4">
+            <div className="section-label mb-3">Achievements Unlocked · {earned.length}</div>
+            <div className="space-y-2">
+              {earned.map((a) => (
+                <div key={a!.id} className="flex items-center gap-3">
+                  <span className="text-xl">{a!.emoji}</span>
+                  <div className="min-w-0">
+                    <div className="text-sm font-black text-chaos-ink">{a!.label}</div>
+                    <div className="serif-note text-xs leading-snug text-white/52">{a!.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <button
           onClick={goToMainMenu}

@@ -1,16 +1,26 @@
 import { create } from 'zustand';
 import type { GameState, Stats, DifficultyLevel, Candidate } from '../types/game';
 import type { Choice } from '../types/events';
-import { DEFAULT_STATS, OPPONENT_DEFAULT_STATS, DIFFICULTY_MODIFIERS, TOTAL_DAYS } from '../utils/constants';
+import { DEFAULT_STATS, OPPONENT_DEFAULT_STATS, DIFFICULTY_MODIFIERS, TOTAL_DAYS, EV_TO_WIN } from '../utils/constants';
 import { clamp, chance } from '../utils/random';
 import { recalcPolls } from '../engine/pollingEngine';
 import { projectEV } from '../engine/electoralCollege';
 import { pickEvent, applyChoice, applyOpponentDay, scaleEffects } from '../engine/eventEngine';
 import { tickEconomy } from '../engine/economySystem';
 import { checkScandalEscalation, SCANDAL_STAT_HIT } from '../engine/scandalSystem';
-import { autosave, saveGame, deleteSave } from '../engine/saveSystem';
+import { autosave, saveGame, deleteSave, recordEarnedAchievements } from '../engine/saveSystem';
+import { evaluateAchievements, type AchContext, type AchSnapshot } from '../engine/achievements';
 import { playScandal } from '../engine/audioSystem';
 import { candidates, opponents } from '../data/candidates';
+
+// Evaluates achievements against a post-mutation snapshot, persists any newly-earned ones to the
+// cross-run profile, and returns the merged in-run earned list.
+function mergeAchievements(snapshot: AchSnapshot, ctx: AchContext, prior: string[]): string[] {
+  const merged = Array.from(new Set([...prior, ...evaluateAchievements(snapshot, ctx)]));
+  const newly = merged.filter((id) => !prior.includes(id));
+  if (newly.length) recordEarnedAchievements(newly);
+  return merged;
+}
 
 function defaultState(): GameState {
   return {
@@ -204,7 +214,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (day >= totalDays) {
       const polls = recalcPolls(stats, opponentStats, day, totalDays);
       const electoralVotes = projectEV(stats, opponentStats);
-      set({ stats, opponentStats, polls, electoralVotes, phase: 'election-night', scandalStage: newScandalStage, activeEffects: remainingEffects });
+      const achievements = mergeAchievements(
+        { stats, difficulty, scandalStage: newScandalStage },
+        { won: electoralVotes.player >= EV_TO_WIN, seats: electoralVotes.player },
+        state.achievements ?? [],
+      );
+      set({ stats, opponentStats, polls, electoralVotes, phase: 'election-night', scandalStage: newScandalStage, activeEffects: remainingEffects, achievements });
       return;
     }
 
@@ -217,6 +232,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
       day: day + 1,
       scandalStage: newScandalStage,
       activeEffects: remainingEffects,
+      achievements: mergeAchievements(
+        { stats, difficulty, scandalStage: newScandalStage },
+        {},
+        state.achievements ?? [],
+      ),
       polls: recalcPolls(stats, opponentStats, day + 1, totalDays),
       electoralVotes: projectEV(stats, opponentStats),
     };
@@ -267,6 +287,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
       category: 'news',
     };
 
+    const achievements = mergeAchievements(
+      { stats, difficulty: state.difficulty, scandalStage: state.scandalStage },
+      {},
+      state.achievements ?? [],
+    );
+
     set({
       stats,
       polls,
@@ -274,6 +300,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       activeEffects: newEffects,
       unlockedEventIds,
       storyFlags,
+      achievements,
       lastChoiceHeadline: logEntry.headline,
       eventLog: [logEntry, ...state.eventLog].slice(0, 50),
       pendingEventId: null,

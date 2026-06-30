@@ -2,6 +2,7 @@ import type { GameState } from '../types/game';
 
 const SAVE_PREFIX = 'campaign_chaos_save_';
 const AUTOSAVE_KEY = 'campaign_chaos_autosave';
+const PROFILE_KEY = 'campaign_chaos_profile';
 export const NUM_SLOTS = 3;
 
 export interface SaveInfo {
@@ -76,4 +77,53 @@ export function autosaveInfo(): SaveInfo | null {
   } catch {
     return null;
   }
+}
+
+// --- Cross-run profile: achievements ever earned + best result. Persists through "delete
+//     saved data" (it's progression, not a save slot). ---
+
+export interface Profile {
+  earned: string[];
+  campaigns: number;
+  wins: number;
+  bestSeats: number;
+}
+
+const EMPTY_PROFILE: Profile = { earned: [], campaigns: 0, wins: 0, bestSeats: 0 };
+
+export function loadProfile(): Profile {
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if (!raw) return { ...EMPTY_PROFILE };
+    return { ...EMPTY_PROFILE, ...(JSON.parse(raw) as Partial<Profile>) };
+  } catch {
+    return { ...EMPTY_PROFILE };
+  }
+}
+
+function saveProfile(p: Profile): void {
+  try {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+  } catch {
+    /* ignore quota / unavailable storage */
+  }
+}
+
+// Union the given achievement ids into the lifetime-earned set.
+export function recordEarnedAchievements(ids: string[]): void {
+  if (!ids.length) return;
+  const p = loadProfile();
+  const earned = Array.from(new Set([...p.earned, ...ids]));
+  if (earned.length !== p.earned.length) saveProfile({ ...p, earned });
+}
+
+// Tally a finished campaign (call once, at game over).
+export function recordCampaignResult(seats: number, won: boolean): void {
+  const p = loadProfile();
+  saveProfile({
+    ...p,
+    campaigns: p.campaigns + 1,
+    wins: p.wins + (won ? 1 : 0),
+    bestSeats: Math.max(p.bestSeats, seats),
+  });
 }
