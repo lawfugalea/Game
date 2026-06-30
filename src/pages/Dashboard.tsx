@@ -5,6 +5,7 @@ import { StatBar } from '../components/ui/StatBar';
 import { PollGauge } from '../components/ui/PollGauge';
 import { ElectoralCounter } from '../components/ui/ElectoralCounter';
 import { SwingStateMap } from '../components/ui/SwingStateMap';
+import { HQActions } from '../components/ui/HQActions';
 import { NewsTicker } from '../components/ui/NewsTicker';
 import { SaveModal } from '../components/ui/SaveModal';
 import { CandidatePortrait, ParliamentSeatsMotif } from '../components/art';
@@ -19,7 +20,7 @@ const COACH_KEY = 'cc-coach-seen';
 export function Dashboard() {
   const {
     day, totalDays, candidate, opponent, stats, opponentStats, prevStats,
-    polls, electoralVotes, eventLog, scandalStage, advanceDay,
+    polls, electoralVotes, eventLog, scandalStage, districtPushes, advanceDay,
   } = useGameStore();
 
   const [showSave, setShowSave] = useState(false);
@@ -98,7 +99,9 @@ export function Dashboard() {
           <div className="section-label mb-1">Parliament Projection</div>
           <ParliamentSeatsMotif player={electoralVotes.player} opponent={electoralVotes.opponent} />
         </div>
-        <SwingStateMap playerStats={stats} opponentStats={opponentStats} />
+        <SwingStateMap playerStats={stats} opponentStats={opponentStats} pushes={districtPushes} />
+
+        <HQActions />
 
         <div className="broadcast-card p-4">
           <div className="section-label mb-3">Campaign Status</div>

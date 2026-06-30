@@ -5,6 +5,11 @@ export const EV_TO_WIN = 33; // seats needed to govern
 // Kept as an alias so older references compile; equals the full house.
 export const TOTAL_EV = TOTAL_SEATS;
 
+// War Room: how many proactive campaign actions the player may take per day, and the ceiling on
+// how far a single district can be shifted by repeated District Pushes (keeps it from running away).
+export const ACTIONS_PER_DAY = 2;
+export const MAX_DISTRICT_PUSH = 0.14;
+
 export const DIFFICULTY_MODIFIERS = {
   easy:   { opponentMult: 0.7,  eventPenaltyMult: 0.7,  scandalsFreq: 0.5 },
   normal: { opponentMult: 1.0,  eventPenaltyMult: 1.0,  scandalsFreq: 1.0 },

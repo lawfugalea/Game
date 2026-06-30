@@ -5,9 +5,10 @@ import { districtPlayerShare } from '../../engine/electoralCollege';
 interface SwingStateMapProps {
   playerStats: Stats;
   opponentStats: Stats;
+  pushes?: Record<string, number>;
 }
 
-export function SwingStateMap({ playerStats, opponentStats }: SwingStateMapProps) {
+export function SwingStateMap({ playerStats, opponentStats, pushes }: SwingStateMapProps) {
   return (
     <div className="broadcast-card p-4">
       <div className="mb-3 flex items-center justify-between">
@@ -16,7 +17,7 @@ export function SwingStateMap({ playerStats, opponentStats }: SwingStateMapProps
       </div>
       <div className="grid grid-cols-4 gap-2">
         {swingDistricts.map((d) => {
-          const share = districtPlayerShare(d, playerStats, opponentStats);
+          const share = districtPlayerShare(d, playerStats, opponentStats, pushes);
           const isLeaning = share > 0.53;
           const isOpponent = share < 0.47;
           const isTossup = !isLeaning && !isOpponent;

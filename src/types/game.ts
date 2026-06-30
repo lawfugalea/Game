@@ -88,6 +88,10 @@ export interface GameState {
   seenEventIds: string[];
   // Number of further events still to resolve on the current day (multiple events/day)
   dayEventsRemaining: number;
+  // War Room: proactive campaign actions left to spend today, and the per-district ground-game
+  // pushes the player has bought (share modifiers keyed by district code).
+  actionsRemaining: number;
+  districtPushes: Record<string, number>;
   // Story flags recorded by choices, used for narrative callbacks and beat gating
   storyFlags: string[];
 }

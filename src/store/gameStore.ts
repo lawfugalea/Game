@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import type { GameState, Stats, DifficultyLevel, Candidate } from '../types/game';
 import type { Choice } from '../types/events';
-import { DEFAULT_STATS, OPPONENT_DEFAULT_STATS, DIFFICULTY_MODIFIERS, TOTAL_DAYS, EV_TO_WIN } from '../utils/constants';
+import { DEFAULT_STATS, OPPONENT_DEFAULT_STATS, DIFFICULTY_MODIFIERS, TOTAL_DAYS, EV_TO_WIN, ACTIONS_PER_DAY, MAX_DISTRICT_PUSH } from '../utils/constants';
+import { getCampaignAction } from '../data/campaignActions';
 import { clamp, chance } from '../utils/random';
 import { recalcPolls } from '../engine/pollingEngine';
 import { projectEV } from '../engine/electoralCollege';
@@ -45,6 +46,8 @@ function defaultState(): GameState {
     unlockedEventIds: [],
     seenEventIds: [],
     dayEventsRemaining: 0,
+    actionsRemaining: ACTIONS_PER_DAY,
+    districtPushes: {},
     storyFlags: [],
   };
 }
@@ -86,6 +89,7 @@ interface GameStore extends GameState {
   loadState: (s: GameState) => void;
   advanceDay: () => void;
   makeChoice: (choice: Choice, eventId: string) => void;
+  runCampaignAction: (actionId: string, districtCode?: string) => void;
   returnToDashboard: () => void;
   goToMainMenu: () => void;
   saveToSlot: (slot: number) => void;
@@ -105,7 +109,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     state.opponent = opponent;
     state.phase = 'campaign';
     state.polls = recalcPolls(state.stats, state.opponentStats, state.day, state.totalDays);
-    state.electoralVotes = projectEV(state.stats, state.opponentStats);
+    state.electoralVotes = projectEV(state.stats, state.opponentStats, state.districtPushes);
     set(state);
   },
 
@@ -129,7 +133,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     state.stats = stats;
 
     state.polls = recalcPolls(state.stats, state.opponentStats, state.day, state.totalDays);
-    state.electoralVotes = projectEV(state.stats, state.opponentStats);
+    state.electoralVotes = projectEV(state.stats, state.opponentStats, state.districtPushes);
     set(state);
   },
 
@@ -142,6 +146,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       dayEventsRemaining: s.dayEventsRemaining ?? 0,
       storyFlags: s.storyFlags ?? [],
       prevStats: s.prevStats ?? null,
+      actionsRemaining: s.actionsRemaining ?? ACTIONS_PER_DAY,
+      districtPushes: s.districtPushes ?? {},
     }),
 
   advanceDay: () => {
@@ -213,7 +219,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // Check for election
     if (day >= totalDays) {
       const polls = recalcPolls(stats, opponentStats, day, totalDays);
-      const electoralVotes = projectEV(stats, opponentStats);
+      const electoralVotes = projectEV(stats, opponentStats, state.districtPushes);
       const achievements = mergeAchievements(
         { stats, difficulty, scandalStage: newScandalStage },
         { won: electoralVotes.player >= EV_TO_WIN, seats: electoralVotes.player },
@@ -232,13 +238,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
       day: day + 1,
       scandalStage: newScandalStage,
       activeEffects: remainingEffects,
+      // Reset the day's War Room action allowance.
+      actionsRemaining: ACTIONS_PER_DAY,
       achievements: mergeAchievements(
         { stats, difficulty, scandalStage: newScandalStage },
         {},
         state.achievements ?? [],
       ),
       polls: recalcPolls(stats, opponentStats, day + 1, totalDays),
-      electoralVotes: projectEV(stats, opponentStats),
+      electoralVotes: projectEV(stats, opponentStats, state.districtPushes),
     };
 
     // Build the day's event load and queue the first one. The rest resolve in sequence
@@ -279,7 +287,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       : state.storyFlags ?? [];
 
     const polls = recalcPolls(stats, state.opponentStats, state.day, state.totalDays);
-    const electoralVotes = projectEV(stats, state.opponentStats);
+    const electoralVotes = projectEV(stats, state.opponentStats, state.districtPushes);
 
     const logEntry = {
       day: state.day,
@@ -304,6 +312,60 @@ export const useGameStore = create<GameStore>((set, get) => ({
       lastChoiceHeadline: logEntry.headline,
       eventLog: [logEntry, ...state.eventLog].slice(0, 50),
       pendingEventId: null,
+    });
+  },
+
+  runCampaignAction: (actionId, districtCode) => {
+    const state = get();
+    if (state.phase !== 'campaign' || state.actionsRemaining <= 0) return;
+
+    const action = getCampaignAction(actionId);
+    if (!action) return;
+    if (state.stats.funds < action.cost) return;
+    if (action.staminaCost && state.stats.stamina < action.staminaCost) return;
+    if (action.targetsDistrict && !districtCode) return;
+
+    const diffMod = DIFFICULTY_MODIFIERS[state.difficulty];
+
+    // Spend the funds + stamina up front (cost is separate from any stat effects).
+    let stats = { ...state.stats, funds: Math.max(0, state.stats.funds - action.cost) };
+    if (action.staminaCost) stats.stamina = clamp(stats.stamina - action.staminaCost);
+
+    // Apply player stat effects with the same diminishing-returns balance as event choices.
+    if (action.effects) {
+      stats = applyChoice(stats, { label: action.label, effects: action.effects, headline: '' });
+    }
+
+    // Apply any effects to the rival (e.g. opposition research raises their scandal risk).
+    let opponentStats = state.opponentStats;
+    if (action.opponentEffects) {
+      const next = { ...opponentStats } as unknown as Record<string, number>;
+      for (const [key, delta] of Object.entries(action.opponentEffects)) {
+        next[key] = clamp((next[key] ?? 0) + (delta as number) * diffMod.opponentMult);
+      }
+      opponentStats = next as unknown as Stats;
+    }
+
+    // Local ground-game push, capped per district so it can't run away.
+    const districtPushes = { ...state.districtPushes };
+    if (action.targetsDistrict && districtCode && action.pushAmount) {
+      districtPushes[districtCode] = Math.min(MAX_DISTRICT_PUSH, (districtPushes[districtCode] ?? 0) + action.pushAmount);
+    }
+
+    const achievements = mergeAchievements(
+      { stats, difficulty: state.difficulty, scandalStage: state.scandalStage },
+      {},
+      state.achievements ?? [],
+    );
+
+    set({
+      stats,
+      opponentStats,
+      districtPushes,
+      actionsRemaining: state.actionsRemaining - 1,
+      achievements,
+      polls: recalcPolls(stats, opponentStats, state.day, state.totalDays),
+      electoralVotes: projectEV(stats, opponentStats, districtPushes),
     });
   },
 

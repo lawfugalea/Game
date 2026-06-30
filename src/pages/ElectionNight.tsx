@@ -8,7 +8,7 @@ import { CandidatePortrait, ElectionNightBackdrop } from '../components/art';
 import { playSeatTick, playResult, buzz } from '../engine/audioSystem';
 
 export function ElectionNight() {
-  const { candidate, opponent, stats, opponentStats, electoralVotes } = useGameStore();
+  const { candidate, opponent, stats, opponentStats, electoralVotes, districtPushes } = useGameStore();
   const [revealed, setRevealed] = useState(0);
   const [done, setDone] = useState(false);
 
@@ -58,7 +58,7 @@ export function ElectionNight() {
 
       <div className="mb-6 grid grid-cols-4 gap-2">
         {districts.slice(0, revealed).map((d, i) => {
-          const share = districtPlayerShare(d, stats, opponentStats);
+          const share = districtPlayerShare(d, stats, opponentStats, districtPushes);
           const playerSeats = Math.round(share * d.seats);
           const playerWins = playerSeats >= 3;
           return (
