@@ -5,6 +5,7 @@ import { districts } from '../data/states';
 import { districtPlayerShare } from '../engine/electoralCollege';
 import { EV_TO_WIN } from '../utils/constants';
 import { CandidatePortrait, ElectionNightBackdrop } from '../components/art';
+import { playSeatTick, playResult, buzz } from '../engine/audioSystem';
 
 export function ElectionNight() {
   const { candidate, opponent, stats, opponentStats, electoralVotes } = useGameStore();
@@ -15,12 +16,13 @@ export function ElectionNight() {
 
   useEffect(() => {
     if (revealed < districts.length) {
-      const t = setTimeout(() => setRevealed((r) => r + 1), 220);
+      const t = setTimeout(() => { setRevealed((r) => r + 1); playSeatTick(); }, 220);
       return () => clearTimeout(t);
     } else {
-      setTimeout(() => setDone(true), 800);
+      const t = setTimeout(() => { setDone(true); playResult(won); buzz(won ? [30, 40, 30] : 60); }, 800);
+      return () => clearTimeout(t);
     }
-  }, [revealed]);
+  }, [revealed, won]);
 
   if (!candidate || !opponent) return null;
 

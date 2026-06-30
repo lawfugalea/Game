@@ -4,8 +4,10 @@ import { useGameStore } from '../store/gameStore';
 import { allEvents } from '../data/events';
 import { ChoiceCard } from '../components/ui/ChoiceCard';
 import { TVLowerThird } from '../components/ui/TVLowerThird';
+import { OutcomeEffects } from '../components/ui/OutcomeEffects';
 import { ScenarioArt, getCategoryColor } from '../components/art';
 import { getChoiceLocks } from '../engine/staminaSystem';
+import { playHeadline, buzz } from '../engine/audioSystem';
 import type { Choice } from '../types/events';
 
 export function EventScreen() {
@@ -20,6 +22,8 @@ export function EventScreen() {
 
   function handleChoice(choice: Choice) {
     setChosen(choice);
+    playHeadline();
+    buzz(14);
     makeChoice(choice, event!.id);
     setTimeout(() => {
       setChosen(null);
@@ -90,6 +94,7 @@ export function EventScreen() {
                 <div className="text-sm font-black text-chaos-ink">
                   {chosen.headline.replace(/"\{name\}"/g, candidate.name)}
                 </div>
+                <OutcomeEffects choice={chosen} />
               </div>
             </div>
           </motion.div>

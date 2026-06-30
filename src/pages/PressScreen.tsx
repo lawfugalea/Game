@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { allEvents } from '../data/events';
 import { ChoiceCard } from '../components/ui/ChoiceCard';
+import { OutcomeEffects } from '../components/ui/OutcomeEffects';
 import { ScenarioArt } from '../components/art';
 import { getChoiceLocks } from '../engine/staminaSystem';
+import { playHeadline, buzz } from '../engine/audioSystem';
 import type { Choice } from '../types/events';
 
 export function PressScreen() {
@@ -19,6 +21,8 @@ export function PressScreen() {
 
   function handleChoice(choice: Choice) {
     setChosen(choice);
+    playHeadline();
+    buzz(14);
     makeChoice(choice, event!.id);
     setTimeout(() => {
       setChosen(null);
@@ -73,6 +77,7 @@ export function PressScreen() {
             <div className="text-sm font-black text-chaos-ink">
               {chosen.headline.replace(/"\{name\}"/g, candidate.name)}
             </div>
+            <OutcomeEffects choice={chosen} />
           </motion.div>
         )}
       </AnimatePresence>

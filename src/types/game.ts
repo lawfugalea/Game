@@ -71,6 +71,8 @@ export interface GameState {
   opponent: Candidate | null;
   stats: Stats;
   opponentStats: Stats;
+  // Snapshot of stats at the start of the current day, so the Dashboard can show ▲▼ trends.
+  prevStats: Stats | null;
   polls: PollData;
   electoralVotes: EVProjection;
   eventLog: EventLogEntry[];

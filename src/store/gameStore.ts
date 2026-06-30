@@ -9,6 +9,7 @@ import { pickEvent, applyChoice, applyOpponentDay, scaleEffects } from '../engin
 import { tickEconomy } from '../engine/economySystem';
 import { checkScandalEscalation, SCANDAL_STAT_HIT } from '../engine/scandalSystem';
 import { autosave, saveGame, deleteSave } from '../engine/saveSystem';
+import { playScandal } from '../engine/audioSystem';
 import { candidates, opponents } from '../data/candidates';
 
 function defaultState(): GameState {
@@ -20,6 +21,7 @@ function defaultState(): GameState {
     opponent: null,
     stats: { ...DEFAULT_STATS },
     opponentStats: { ...OPPONENT_DEFAULT_STATS },
+    prevStats: null,
     polls: { player: 50, opponent: 50 },
     electoralVotes: { player: 32, opponent: 33, tossup: 0 },
     eventLog: [],
@@ -129,6 +131,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       seenEventIds: s.seenEventIds ?? [],
       dayEventsRemaining: s.dayEventsRemaining ?? 0,
       storyFlags: s.storyFlags ?? [],
+      prevStats: s.prevStats ?? null,
     }),
 
   advanceDay: () => {
@@ -178,6 +181,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         const k = key as keyof Stats;
         (stats as Record<string, number>)[k] = clamp((stats[k] as number) + (delta as number) * diffMod.eventPenaltyMult);
       }
+      playScandal();
     }
 
     // Mean reversion: nudge sentiment stats back toward the centre so leads erode if not
@@ -208,6 +212,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const nextState: Partial<GameState> = {
       stats,
       opponentStats,
+      // Snapshot pre-day stats so the Dashboard can show the net ▲▼ change over the day just run.
+      prevStats: { ...state.stats },
       day: day + 1,
       scandalStage: newScandalStage,
       activeEffects: remainingEffects,

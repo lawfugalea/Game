@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { listSaves, loadGame, loadAutosave, autosaveInfo, clearAllSaves } from '../engine/saveSystem';
 import { MainMenuHeroArt } from '../components/art';
+import { playTap, isMuted, toggleMuted } from '../engine/audioSystem';
 import type { DifficultyLevel } from '../types/game';
 
 const DIFFICULTIES: { id: DifficultyLevel; label: string; desc: string }[] = [
@@ -16,6 +17,7 @@ export function MainMenu() {
   const { difficulty, setDifficulty, phase, loadState } = useGameStore();
   const [confirmWipe, setConfirmWipe] = useState(false);
   const [refresh, setRefresh] = useState(0);
+  const [muted, setMuted] = useState(isMuted());
   void refresh;
   const saves = listSaves();
   const auto = autosaveInfo();
@@ -28,6 +30,7 @@ export function MainMenu() {
   }
 
   function handleNewGame() {
+    playTap();
     useGameStore.setState({ phase: 'candidate-select' });
   }
 
@@ -56,7 +59,17 @@ export function MainMenu() {
         <div className="mb-7">
           <div className="mb-4 flex items-center justify-between">
             <div className="section-label">Malta Votes · 5 Week Sprint</div>
-            <div className="rounded-sm border border-chaos-gold/35 bg-chaos-gold/12 px-2 py-1 text-[0.62rem] font-black uppercase text-chaos-gold">LIVE</div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setMuted(toggleMuted())}
+                className="text-sm leading-none transition-opacity hover:opacity-80"
+                aria-label={muted ? 'Unmute sound' : 'Mute sound'}
+                title={muted ? 'Unmute' : 'Mute'}
+              >
+                {muted ? '🔇' : '🔊'}
+              </button>
+              <div className="rounded-sm border border-chaos-gold/35 bg-chaos-gold/12 px-2 py-1 text-[0.62rem] font-black uppercase text-chaos-gold">LIVE</div>
+            </div>
           </div>
 
           <div className="relative overflow-hidden border-y border-chaos-gold/35 py-5">
@@ -87,7 +100,7 @@ export function MainMenu() {
             {DIFFICULTIES.map((d) => (
               <button
                 key={d.id}
-                onClick={() => setDifficulty(d.id)}
+                onClick={() => { playTap(); setDifficulty(d.id); }}
                 className={`rounded-sm border p-3 text-left transition-all ${
                   difficulty === d.id
                     ? 'border-chaos-gold/65 bg-chaos-gold/14 text-chaos-ink'

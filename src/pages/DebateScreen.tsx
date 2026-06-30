@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { allEvents } from '../data/events';
 import { ChoiceCard } from '../components/ui/ChoiceCard';
+import { OutcomeEffects } from '../components/ui/OutcomeEffects';
 import { CandidatePortrait, ScenarioArt } from '../components/art';
 import { getChoiceLocks } from '../engine/staminaSystem';
+import { playHeadline, buzz } from '../engine/audioSystem';
 import type { Choice } from '../types/events';
 
 export function DebateScreen() {
@@ -19,6 +21,8 @@ export function DebateScreen() {
 
   function handleChoice(choice: Choice) {
     setChosen(choice);
+    playHeadline();
+    buzz(14);
     const pop = choice.effects.popularity ?? 0;
     setAudienceMeter((prev) => Math.max(10, Math.min(90, prev + pop)));
     makeChoice(choice, event!.id);
@@ -91,6 +95,7 @@ export function DebateScreen() {
             <div className="text-sm font-black text-chaos-ink">
               {chosen.headline.replace(/"\{name\}"/g, candidate.name)}
             </div>
+            <OutcomeEffects choice={chosen} />
           </motion.div>
         )}
       </AnimatePresence>
